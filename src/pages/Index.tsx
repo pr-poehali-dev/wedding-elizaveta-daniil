@@ -99,11 +99,31 @@ function HeartParticles() {
       {hearts.map((h, i) => (
         <div key={i} style={{
           position: "absolute", bottom: 0, left: h.left,
-          fontSize: h.size, color: "rgba(255,255,255,0.6)",
           animation: `floatHeart ${h.dur}s ${h.delay}s ease-in infinite`,
-        }}>♥</div>
+        }}>
+          <HandHeart size={h.size} color="rgba(255,255,255,0.7)" />
+        </div>
       ))}
     </div>
+  );
+}
+
+// ── Hand-drawn heart SVG (pencil style)
+function HandHeart({ size = 18, color = C.red, opacity = 1, style = {} }: { size?: number; color?: string; opacity?: number; style?: React.CSSProperties }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ display: "inline-block", verticalAlign: "middle", opacity, ...style }}>
+      <path
+        d="M16 27 C15 26 5 19.5 4 13 C3.2 8.5 6.5 5 10.5 5.5 C12.8 5.8 14.5 7.2 16 9.5 C17.5 7.2 19.8 5.5 22.2 5.5 C26.2 5.2 29 8.8 28 13.2 C27 20 17 26 16 27 Z"
+        stroke={color} strokeWidth="1.7" fill="none"
+        strokeLinecap="round" strokeLinejoin="round"
+        strokeDasharray="1 0.5"
+        style={{ filter: "url(#rough)" }}
+      />
+      <path
+        d="M16 27 C15.2 25.8 4.5 19 3.8 12.5 C3.2 8 6.8 4.5 11 5.2"
+        stroke={color} strokeWidth="0.5" fill="none" strokeLinecap="round" opacity="0.35"
+      />
+    </svg>
   );
 }
 
@@ -152,11 +172,10 @@ function FloatingHearts({ color = "white" }: { color?: string }) {
           transform: `rotate(${r}deg) scale(${s})`,
           animation: `heartbeat ${anim} ease-in-out infinite`,
           animationDelay: `${i * 0.15}s`,
-          fontSize: "1.4rem",
-          color,
-          opacity: 0.85,
           lineHeight: 1,
-        }}>♥</div>
+        }}>
+          <HandHeart size={22} color={color} opacity={0.85} />
+        </div>
       ))}
     </div>
   );
@@ -384,14 +403,16 @@ function RSVPForm() {
 
   if (sent) {
     const messages = {
-      ceremony: { title: "Увидимся в Суздале! ♥", sub: "Мы так рады, что вы будете с нами с самого начала!" },
-      banquet: { title: "Ждём вас на банкете! ♥", sub: "Готовьтесь — будет весело и очень тепло!" },
+      ceremony: { title: "Увидимся в Суздале!", sub: "Мы так рады, что вы будете с нами с самого начала!" },
+      banquet: { title: "Ждём вас на банкете!", sub: "Готовьтесь — будет весело и очень тепло!" },
       no: { title: "Жаль, что не получится...", sub: "Будем думать о вас и обязательно отпразднуем отдельно!" },
     };
     const msg = messages[attend as keyof typeof messages];
     return (
       <div style={{ textAlign: "center", padding: "1.5rem 0" }}>
-        <div style={{ fontSize: "3rem", display: "inline-block", animation: "heartbeat 1.4s ease-in-out infinite" }}>♥</div>
+        <div style={{ display: "inline-block", animation: "heartbeat 1.4s ease-in-out infinite" }}>
+        <HandHeart size={44} color={C.red} />
+      </div>
         <div style={{ fontFamily: C.script, fontSize: "2rem", color: C.red, marginTop: "0.5rem", lineHeight: 1.2 }}>
           {msg.title}
         </div>
@@ -403,7 +424,7 @@ function RSVPForm() {
   }
 
   const options = [
-    { val: "ceremony" as const, label: "Роспись + банкет", sub: "Буду с вами весь день ♥", icon: "💍" },
+    { val: "ceremony" as const, label: "Роспись + банкет", sub: "Буду с вами весь день", icon: "💍" },
     { val: "banquet" as const, label: "Только банкет", sub: "Приеду к вечеру", icon: "🥂" },
     { val: "no" as const, label: "Не смогу прийти", sub: "К сожалению...", icon: "😢" },
   ];
@@ -456,8 +477,9 @@ function RSVPForm() {
         color: name.trim() && attend ? "white" : C.red,
         cursor: "pointer", transition: "all 0.25s ease",
         opacity: name.trim() && attend ? 1 : 0.4,
+        display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", width: "100%",
       }}>
-        Отправить ♥
+        Отправить <HandHeart size={16} color={name.trim() && attend ? "white" : C.red} />
       </button>
     </div>
   );
@@ -469,7 +491,7 @@ export default function Index() {
     {
       time: "10:30",
       title: "Регистрация брака",
-      note: "Торжественная церемония в Суздале. Мы будем безмерно счастливы видеть вас рядом в этот момент — но понимаем, что дорога неблизкая. Если не получится приехать к росписи, не переживайте: ждём вас на банкете с распростёртыми объятиями! ♥",
+      note: "Торжественная церемония в Суздале. Мы будем безмерно счастливы видеть вас рядом в этот момент — но понимаем, что дорога неблизкая. Если не получится приехать к росписи, не переживайте: ждём вас на банкете с распростёртыми объятиями!",
       optional: true,
     },
     { time: "11:00", title: "Фотосессия молодожёнов", note: "Прогулка по историческим улочкам Суздаля" },
@@ -543,7 +565,9 @@ export default function Index() {
             </p>
           </Anim>
           <Anim type="pop" delay={300}>
-            <div style={{ fontSize: "2.5rem", marginTop: "1rem", display: "inline-block", animation: "heartbeat 1.4s ease-in-out infinite" }}>♥</div>
+            <div style={{ marginTop: "1rem", display: "inline-block", animation: "heartbeat 1.4s ease-in-out infinite" }}>
+              <HandHeart size={40} color={C.red} />
+            </div>
           </Anim>
         </Card>
       </Anim>
@@ -632,7 +656,7 @@ export default function Index() {
           <Anim type="up"><SectionTitle>Важное</SectionTitle></Anim>
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
             {[
-              { icon: "🎁", title: "Подарки", text: "Мы будем безмерно рады любому знаку внимания — вашего тёплого присутствия уже более чем достаточно. Но если хочется порадовать нас чем-то материальным, мы будем очень признательны, если подарок уместится в конверт — так нам будет намного удобнее после праздника ♥" },
+              { icon: "🎁", title: "Подарки", text: "Мы будем безмерно рады любому знаку внимания — вашего тёплого присутствия уже более чем достаточно. Но если хочется порадовать нас чем-то материальным, мы будем очень признательны, если подарок уместится в конверт — так нам будет намного удобнее после праздника" },
               { icon: "🚗", title: "Транспорт", text: "Переживаете насчёт дороги до Суздаля? Не беспокойтесь — напишите нам заранее, и мы обязательно что-нибудь придумаем вместе!" },
             ].map(({ icon, title, text }, i) => (
               <Anim key={i} type={i === 0 ? "left" : "right"} delay={i * 150}>
@@ -678,7 +702,11 @@ export default function Index() {
             </Anim>
           </div>
           <Anim type="pop" delay={300}>
-            <div style={{ fontSize: "1.5rem", marginTop: "0.5rem", letterSpacing: "0.5em", color: C.red, opacity: 0.5 }}>♥ ♥ ♥</div>
+            <div style={{ marginTop: "0.5rem", display: "flex", justifyContent: "center", gap: "0.75rem", opacity: 0.5 }}>
+              <HandHeart size={20} color={C.red} />
+              <HandHeart size={20} color={C.red} />
+              <HandHeart size={20} color={C.red} />
+            </div>
           </Anim>
         </Card>
       </Anim>
@@ -754,7 +782,7 @@ export default function Index() {
                       <div style={{ fontFamily: C.script, fontSize: "1.2rem", color: C.red, lineHeight: 1 }}>{role} — {name}</div>
                       <div style={{ fontFamily: C.body, fontSize: "0.88rem", color: C.text, marginTop: "2px", fontWeight: 600 }}>{phone}</div>
                     </div>
-                    <div style={{ marginLeft: "auto", color: C.red, opacity: 0.5, fontSize: "1rem" }}>♥</div>
+                    <div style={{ marginLeft: "auto", opacity: 0.5 }}><HandHeart size={16} color={C.red} /></div>
                   </div>
                 </a>
               </Anim>
@@ -781,7 +809,11 @@ export default function Index() {
         <div style={{ textAlign: "center", paddingTop: "0.75rem" }}>
           <ScatteredHearts color="rgba(255,255,255,0.4)" opacity={0.5} />
           <div style={{ fontFamily: C.script, fontSize: "clamp(2.5rem, 8vw, 4rem)", color: C.cream, lineHeight: 1 }}>E &amp; D</div>
-          <div style={{ fontSize: "1.5rem", color: "rgba(255,255,255,0.5)", letterSpacing: "0.5em", marginTop: "0.4rem" }}>♥ ♥ ♥</div>
+          <div style={{ display: "flex", justifyContent: "center", gap: "0.75rem", marginTop: "0.4rem", opacity: 0.5 }}>
+            <HandHeart size={20} color="white" />
+            <HandHeart size={20} color="white" />
+            <HandHeart size={20} color="white" />
+          </div>
           <p style={{ fontFamily: C.body, fontSize: "0.72rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginTop: "0.5rem" }}>
             26 · VI · 2026
           </p>
