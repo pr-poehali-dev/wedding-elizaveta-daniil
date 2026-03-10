@@ -322,7 +322,7 @@ export default function Index() {
           <span style={{ display: "block", paddingTop: "1.5rem" }}>Узнали?</span>
         </SectionTitle>
         <p style={{ fontFamily: C.body, fontSize: "0.92rem", color: C.muted, lineHeight: 1.75, margin: "0 0 1.25rem", fontStyle: "italic", padding: "0 1.5rem" }}>
-          Эти двое влюблены с самого детства!<br />
+          Они учились в одной школе, но так и не познакомились.<br />
           А теперь — скоро свадьба. Да-да, мы сами в шоке!
         </p>
         {/* Фото пары — на всю ширину */}
