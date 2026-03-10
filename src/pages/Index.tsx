@@ -441,6 +441,14 @@ export default function Index() {
               Банкет: <strong style={{ color: C.text }}>ресторан «Вновь», Владимир</strong><br />
               <span style={{ fontSize: "0.78rem" }}>ул. Летне-Перевозинская, 1А</span>
             </p>
+            {/* Фото ресторана */}
+            <div style={{ borderRadius: "1rem", overflow: "hidden", border: `2px solid ${C.red}`, marginBottom: "1.25rem" }}>
+              <img
+                src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/2c8be2d5-8fd3-40a4-8b57-c6362d933e78.jpg"
+                alt="Ресторан Вновь"
+                style={{ width: "100%", display: "block", maxHeight: "200px", objectFit: "cover", objectPosition: "center" }}
+              />
+            </div>
             <a href="https://yandex.ru/maps/?text=Владимир+ул.+Летне-Перевозинская+1А" target="_blank" rel="noopener noreferrer" style={{
               fontFamily: C.body, fontSize: "0.8rem", letterSpacing: "0.12em", textTransform: "uppercase",
               padding: "0.6rem 1.5rem", border: `1.5px solid ${C.red}`, color: C.red,
@@ -532,6 +540,89 @@ export default function Index() {
             </div>
           </div>
           <div style={{ fontSize: "1.5rem", marginTop: "0.5rem", letterSpacing: "0.5em", color: C.red, opacity: 0.5 }}>♥ ♥ ♥</div>
+        </Card>
+      </FadeIn>
+
+      {/* ── КОНТАКТЫ ── */}
+      <FadeIn delay={100}>
+        <Card style={{ textAlign: "center", position: "relative", overflow: "hidden" }}>
+          {/* Рисованная люстра */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.5rem" }}>
+            <svg width="120" height="110" viewBox="0 0 120 110" fill="none">
+              {/* Ceiling mount */}
+              <rect x="48" y="2" width="24" height="6" rx="2" stroke={C.red} strokeWidth="1.8" fill="none"/>
+              {/* Central chain */}
+              <line x1="60" y1="8" x2="60" y2="22" stroke={C.red} strokeWidth="1.8" strokeLinecap="round"/>
+              {/* Top canopy */}
+              <path d="M40 22 Q60 18 80 22 L76 32 Q60 28 44 32 Z" stroke={C.red} strokeWidth="1.8" fill="none" strokeLinejoin="round"/>
+              {/* Main skirt */}
+              <path d="M44 32 Q30 44 28 58 L92 58 Q90 44 76 32 Q60 28 44 32Z" stroke={C.red} strokeWidth="1.8" fill="none" strokeLinejoin="round"/>
+              {/* Bottom ring */}
+              <ellipse cx="60" cy="58" rx="32" ry="5" stroke={C.red} strokeWidth="1.8" fill="none"/>
+              {/* Arms left */}
+              <path d="M36 46 Q22 46 18 52" stroke={C.red} strokeWidth="1.8" fill="none" strokeLinecap="round"/>
+              <path d="M18 52 Q16 56 18 60" stroke={C.red} strokeWidth="1.8" fill="none" strokeLinecap="round"/>
+              {/* Candle left */}
+              <rect x="14" y="54" width="8" height="12" rx="1" stroke={C.red} strokeWidth="1.5" fill="none"/>
+              <path d="M18 54 Q20 50 18 48 Q16 50 18 54" stroke={C.red} strokeWidth="1.3" fill="none"/>
+              {/* Arms right */}
+              <path d="M84 46 Q98 46 102 52" stroke={C.red} strokeWidth="1.8" fill="none" strokeLinecap="round"/>
+              <path d="M102 52 Q104 56 102 60" stroke={C.red} strokeWidth="1.8" fill="none" strokeLinecap="round"/>
+              {/* Candle right */}
+              <rect x="98" y="54" width="8" height="12" rx="1" stroke={C.red} strokeWidth="1.5" fill="none"/>
+              <path d="M102 54 Q104 50 102 48 Q100 50 102 54" stroke={C.red} strokeWidth="1.3" fill="none"/>
+              {/* Center candle */}
+              <rect x="55" y="54" width="10" height="14" rx="1" stroke={C.red} strokeWidth="1.5" fill="none"/>
+              <path d="M60 54 Q63 49 60 46 Q57 49 60 54" stroke={C.red} strokeWidth="1.3" fill="none"/>
+              {/* Beads/drops */}
+              {[28,36,44,52,60,68,76,84,92].map((x, i) => (
+                <g key={i}>
+                  <line x1={x} y1="63" x2={x + (i % 3 - 1) * 2} y2="72" stroke={C.red} strokeWidth="1.2" strokeLinecap="round"/>
+                  <circle cx={x + (i % 3 - 1) * 2} cy="75" r="2.5" stroke={C.red} strokeWidth="1.3" fill="none"/>
+                  {i % 2 === 0 && <circle cx={x + (i % 3 - 1) * 2} cy="81" r="1.5" stroke={C.red} strokeWidth="1.2" fill="none"/>}
+                </g>
+              ))}
+            </svg>
+          </div>
+
+          <SectionTitle>Есть вопросы?</SectionTitle>
+          <p style={{ fontFamily: C.body, fontSize: "0.85rem", color: C.muted, fontStyle: "italic", margin: "0 0 1.5rem", lineHeight: 1.7 }}>
+            Пишите или звоните — мы всегда на связи!
+          </p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {[
+              { role: "Жених", name: "Даниил", phone: "8-910-172-38-72", raw: "89101723872" },
+              { role: "Невеста", name: "Елизавета", phone: "8-904-596-75-36", raw: "89045967536" },
+            ].map(({ role, name, phone, raw }) => (
+              <a key={role} href={`tel:${raw}`} style={{ textDecoration: "none" }}>
+                <div style={{
+                  display: "flex", alignItems: "center", gap: "1rem",
+                  border: `1.5px solid rgba(185,28,28,0.25)`,
+                  borderRadius: "1rem", padding: "0.9rem 1.2rem",
+                  backgroundColor: "white",
+                  transition: "all 0.2s ease",
+                }}>
+                  <div style={{
+                    width: 42, height: 42, borderRadius: "50%",
+                    backgroundColor: "rgba(185,28,28,0.08)",
+                    border: `1.5px solid ${C.red}`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0,
+                  }}>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path d="M4 2 C4 2 3 2 2.5 3 C2 4 2 6 4 8 C6 10 8 12 10 13.5 C12 15 14.5 16.5 16 16.5 C17.5 16.5 18 16 18 15 L18 14 C18 13.5 17.5 13 17 13 L15 13 C14.5 13 14 13.5 14 14 C13 13.5 11 12 9 10 C7 8 5.5 6 5 5 C5.5 5 6 4.5 6 4 L6 2 C6 1.5 5.5 1 5 1 L4.5 1 C4 1 4 1.5 4 2Z" stroke={C.red} strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <div style={{ textAlign: "left" }}>
+                    <div style={{ fontFamily: C.script, fontSize: "1.2rem", color: C.red, lineHeight: 1 }}>{role} — {name}</div>
+                    <div style={{ fontFamily: C.body, fontSize: "0.88rem", color: C.text, marginTop: "2px", fontWeight: 600 }}>{phone}</div>
+                  </div>
+                  <div style={{ marginLeft: "auto", color: C.red, opacity: 0.5, fontSize: "1rem" }}>♥</div>
+                </div>
+              </a>
+            ))}
+          </div>
         </Card>
       </FadeIn>
 
