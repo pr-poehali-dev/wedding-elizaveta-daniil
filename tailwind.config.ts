@@ -22,6 +22,8 @@ export default {
 		fontFamily: {
 			'cormorant': ['"Cormorant Garamond"', 'Georgia', 'serif'],
 			'cormorant-sc': ['"Cormorant"', 'Georgia', 'serif'],
+			'caveat': ['"Caveat"', 'cursive'],
+			'montserrat': ['"Montserrat"', 'sans-serif'],
 		},
 		extend: {
 			colors: {

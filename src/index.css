@@ -4,52 +4,48 @@
 
 @layer base {
   :root {
-    --background: 120 22% 14%;
-    --foreground: 40 30% 88%;
+    --background: 60 20% 97%;
+    --foreground: 120 25% 18%;
 
-    --card: 120 20% 16%;
-    --card-foreground: 40 30% 88%;
+    --card: 60 20% 97%;
+    --card-foreground: 120 25% 18%;
 
-    --popover: 120 20% 16%;
-    --popover-foreground: 40 30% 88%;
+    --popover: 60 20% 97%;
+    --popover-foreground: 120 25% 18%;
 
-    --primary: 40 30% 88%;
-    --primary-foreground: 120 22% 14%;
+    --primary: 120 25% 22%;
+    --primary-foreground: 60 20% 97%;
 
-    --secondary: 120 15% 22%;
-    --secondary-foreground: 40 30% 88%;
+    --secondary: 60 15% 92%;
+    --secondary-foreground: 120 25% 22%;
 
-    --muted: 120 15% 20%;
-    --muted-foreground: 120 12% 55%;
+    --muted: 60 12% 90%;
+    --muted-foreground: 120 10% 45%;
 
-    --accent: 120 18% 30%;
-    --accent-foreground: 40 30% 88%;
+    --accent: 60 15% 88%;
+    --accent-foreground: 120 25% 22%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 40 30% 88%;
+    --destructive-foreground: 60 20% 97%;
 
-    --border: 120 12% 25%;
-    --input: 120 12% 25%;
-    --ring: 40 30% 88%;
+    --border: 60 10% 85%;
+    --input: 60 10% 85%;
+    --ring: 120 25% 22%;
 
-    --radius: 0rem;
+    --radius: 1rem;
 
-    --sidebar-background: 120 22% 14%;
-    --sidebar-foreground: 40 30% 88%;
-    --sidebar-primary: 40 30% 88%;
-    --sidebar-primary-foreground: 120 22% 14%;
-    --sidebar-accent: 120 15% 22%;
-    --sidebar-accent-foreground: 40 30% 88%;
-    --sidebar-border: 120 12% 25%;
-    --sidebar-ring: 40 30% 88%;
-
-    --forest: #1a2e1a;
-    --forest-deep: #111f11;
-    --sage: #8faa8f;
-    --sage-light: #b4c8b4;
-    --cream: #f0ebe0;
-    --cream-warm: #e8e0d0;
-    --thin-line: rgba(144, 170, 144, 0.3);
+    /* Custom palette */
+    --bg: #f5f4f0;
+    --bg-card: #f0ede6;
+    --green-dark: #2d4a2d;
+    --green-mid: #4a6741;
+    --green-light: #7a9e6e;
+    --beige: #e8e2d5;
+    --beige-light: #f0ede6;
+    --pink-dot: #c4a8a0;
+    --text-body: #3a3a3a;
+    --text-muted: #7a7a7a;
+    --card-border: rgba(74, 103, 65, 0.25);
   }
 }
 
@@ -59,9 +55,10 @@
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: "Cormorant Garamond", Georgia, serif;
-    background-color: var(--forest);
+    background-color: var(--bg);
+    color: var(--text-body);
+    font-family: "Montserrat", sans-serif;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
   }
 
   html {
@@ -70,47 +67,92 @@
 }
 
 @layer utilities {
-  .text-cream {
-    color: var(--cream);
+  .font-script {
+    font-family: "Caveat", cursive;
   }
-  .text-sage {
-    color: var(--sage);
+  .font-body {
+    font-family: "Montserrat", sans-serif;
   }
-  .text-sage-light {
-    color: var(--sage-light);
+  .text-green-dark {
+    color: var(--green-dark);
   }
-  .bg-forest {
-    background-color: var(--forest);
+  .text-green-mid {
+    color: var(--green-mid);
   }
-  .bg-forest-deep {
-    background-color: var(--forest-deep);
+  .bg-page {
+    background-color: var(--bg);
   }
-  .border-thin {
-    border-color: var(--thin-line);
+
+  /* Polaroid card */
+  .polaroid {
+    background: white;
+    padding: 10px 10px 32px 10px;
+    box-shadow: 2px 4px 18px rgba(0, 0, 0, 0.13);
+  }
+
+  /* Tape strip */
+  .tape {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
+    width: 70px;
+    height: 26px;
+    background: rgba(180, 190, 170, 0.55);
+    backdrop-filter: blur(2px);
+    z-index: 10;
   }
 
   .animate-fade-up {
     opacity: 0;
-    animation: fade-up 0.9s ease-out forwards;
+    animation: fadeUp 0.9s ease-out forwards;
   }
   .animate-fade-up-d1 {
     opacity: 0;
-    animation: fade-up 0.9s 0.25s ease-out forwards;
+    animation: fadeUp 0.9s 0.2s ease-out forwards;
   }
   .animate-fade-up-d2 {
     opacity: 0;
-    animation: fade-up 0.9s 0.5s ease-out forwards;
+    animation: fadeUp 0.9s 0.4s ease-out forwards;
   }
   .animate-fade-up-d3 {
     opacity: 0;
-    animation: fade-up 0.9s 0.75s ease-out forwards;
+    animation: fadeUp 0.9s 0.6s ease-out forwards;
   }
   .animate-fade-up-d4 {
     opacity: 0;
-    animation: fade-up 0.9s 1s ease-out forwards;
+    animation: fadeUp 0.9s 0.8s ease-out forwards;
   }
   .animate-fade-in-slow {
     opacity: 0;
-    animation: fade-in 2s ease-out forwards;
+    animation: fadeIn 1.8s ease-out forwards;
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
   }
 }
