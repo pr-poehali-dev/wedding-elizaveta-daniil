@@ -108,22 +108,62 @@ function HeartParticles() {
   );
 }
 
-// ── Hand-drawn heart SVG (pencil style)
+// ── Hand-drawn heart SVG (pencil / crayon style)
 function HandHeart({ size = 18, color = C.red, opacity = 1, style = {} }: { size?: number; color?: string; opacity?: number; style?: React.CSSProperties }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ display: "inline-block", verticalAlign: "middle", opacity, ...style }}>
+      <defs>
+        <filter id="pencil" x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.065" numOctaves="3" seed="4" result="noise"/>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.1" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+      </defs>
+      {/* основной контур — чуть неровный */}
       <path
-        d="M16 27 C15 26 5 19.5 4 13 C3.2 8.5 6.5 5 10.5 5.5 C12.8 5.8 14.5 7.2 16 9.5 C17.5 7.2 19.8 5.5 22.2 5.5 C26.2 5.2 29 8.8 28 13.2 C27 20 17 26 16 27 Z"
-        stroke={color} strokeWidth="1.7" fill="none"
+        d="M16 27.5 C14.5 26 3.5 19 3 12.5 C2.5 7.5 6.2 4.2 10.5 5 C13 5.5 14.8 7.3 16 9.8 C17.2 7.3 19.5 5.2 22.2 5 C26.5 4.5 29.8 8 29 13 C28 20 17.5 26 16 27.5Z"
+        stroke={color} strokeWidth="1.8" fill="none"
         strokeLinecap="round" strokeLinejoin="round"
-        strokeDasharray="1 0.5"
-        style={{ filter: "url(#rough)" }}
+        filter="url(#pencil)"
       />
+      {/* второй штрих — как второй проход карандашом */}
       <path
-        d="M16 27 C15.2 25.8 4.5 19 3.8 12.5 C3.2 8 6.8 4.5 11 5.2"
-        stroke={color} strokeWidth="0.5" fill="none" strokeLinecap="round" opacity="0.35"
+        d="M16 27 C15 25.5 4 18.5 3.5 12 C3.1 8 6.5 5 10.8 5.5 C13 5.8 14.6 7.5 16 9.5"
+        stroke={color} strokeWidth="0.9" fill="none" strokeLinecap="round" opacity="0.3"
+        filter="url(#pencil)"
+      />
+      {/* лёгкая штриховка внутри */}
+      <path
+        d="M11 10 C10 13 10 17 13 21"
+        stroke={color} strokeWidth="0.6" fill="none" strokeLinecap="round" opacity="0.18"
+        filter="url(#pencil)"
       />
     </svg>
+  );
+}
+
+// ── Набор маленьких рисованных сердечек для украшения блоков
+function BlockHearts({ color = C.red, count = 3, size = 14 }: { color?: string; count?: number; size?: number }) {
+  const positions = [
+    { right: "12px", top: "10px", r: 15, op: 0.18 },
+    { right: "32px", top: "18px", r: -10, op: 0.12 },
+    { left: "14px", top: "12px", r: -18, op: 0.15 },
+    { left: "34px", top: "22px", r: 8, op: 0.1 },
+    { right: "18px", bottom: "10px", r: -12, op: 0.13 },
+    { left: "18px", bottom: "14px", r: 10, op: 0.11 },
+  ].slice(0, count * 2);
+  return (
+    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
+      {positions.map((p, i) => (
+        <div key={i} style={{
+          position: "absolute",
+          right: p.right, left: p.left, top: p.top, bottom: p.bottom,
+          transform: `rotate(${p.r}deg)`,
+          opacity: p.op,
+        }}>
+          <HandHeart size={size + (i % 2) * 4} color={color} />
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -505,7 +545,8 @@ export default function Index() {
 
       {/* ── HERO: детское фото ── */}
       <Anim type="zoom">
-        <Card style={{ padding: "0 0 1.5rem", overflow: "hidden" }}>
+        <Card style={{ padding: "0 0 1.5rem", overflow: "hidden", position: "relative" }}>
+          <BlockHearts count={2} size={16} />
           <Anim type="down">
             <div style={{ borderRadius: "1.5rem 1.5rem 0 0", overflow: "hidden" }}>
               <img
@@ -528,7 +569,8 @@ export default function Index() {
 
       {/* ── УЗНАЛИ? ── */}
       <Anim type="card" delay={50}>
-        <Card style={{ padding: "1.5rem 0 0", overflow: "hidden", textAlign: "center" }}>
+        <Card style={{ padding: "1.5rem 0 0", overflow: "hidden", textAlign: "center", position: "relative" }}>
+          <BlockHearts count={2} size={14} />
           <div style={{ padding: "0 1.5rem" }}>
             <Anim type="up"><SectionTitle>Узнали?</SectionTitle></Anim>
             <Anim type="up" delay={120}>
@@ -556,6 +598,7 @@ export default function Index() {
       <Anim type="card" delay={50}>
         <Card style={{ textAlign: "center", position: "relative", overflow: "hidden" }}>
           <HeartParticles />
+          <BlockHearts count={3} size={18} />
           <ScatteredHearts opacity={0.1} />
           <Anim type="rotate"><SectionTitle>Мы так вас любим!</SectionTitle></Anim>
           <Anim type="up" delay={150}>
@@ -574,7 +617,8 @@ export default function Index() {
 
       {/* ── CALENDAR + WHERE ── */}
       <Anim type="card" delay={50}>
-        <Card>
+        <Card style={{ position: "relative", overflow: "hidden" }}>
+          <BlockHearts count={2} size={15} />
           <Anim type="up"><SectionTitle>Когда?</SectionTitle></Anim>
           <Anim type="zoom" delay={100}><CalendarBlock /></Anim>
           <div style={{ textAlign: "center", marginTop: "1.75rem" }}>
@@ -609,7 +653,8 @@ export default function Index() {
 
       {/* ── TIMELINE ── */}
       <Anim type="card" delay={50}>
-        <Card>
+        <Card style={{ position: "relative", overflow: "hidden" }}>
+          <BlockHearts count={2} size={14} />
           <Anim type="up"><SectionTitle>Во сколько?</SectionTitle></Anim>
           {timeline.map((item, i) => (
             <Anim key={i} type="left" delay={i * 100}>
@@ -628,7 +673,8 @@ export default function Index() {
 
       {/* ── ДРЕСС-КОД ── */}
       <Anim type="card" delay={50}>
-        <Card style={{ textAlign: "center" }}>
+        <Card style={{ textAlign: "center", position: "relative", overflow: "hidden" }}>
+          <BlockHearts count={2} size={14} />
           <Anim type="up"><SectionTitle>Дресс-код</SectionTitle></Anim>
           <Anim type="up" delay={100}>
             <p style={{ fontFamily: C.body, fontSize: "0.88rem", color: C.muted, lineHeight: 1.75, margin: "0 0 1.5rem", fontStyle: "italic" }}>
@@ -652,7 +698,8 @@ export default function Index() {
 
       {/* ── ВАЖНОЕ ── */}
       <Anim type="card" delay={50}>
-        <Card>
+        <Card style={{ position: "relative", overflow: "hidden" }}>
+          <BlockHearts count={2} size={15} />
           <Anim type="up"><SectionTitle>Важное</SectionTitle></Anim>
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
             {[
@@ -676,7 +723,8 @@ export default function Index() {
 
       {/* ── COUNTDOWN + фото инстакс ── */}
       <Anim type="card" delay={50}>
-        <Card style={{ textAlign: "center" }}>
+        <Card style={{ textAlign: "center", position: "relative", overflow: "hidden" }}>
+          <BlockHearts count={3} size={16} />
           <Anim type="up"><SectionTitle>До нашей встречи осталось</SectionTitle></Anim>
           <Anim type="zoom" delay={100}><Countdown /></Anim>
           <ScatteredHearts opacity={0.13} />
@@ -714,6 +762,7 @@ export default function Index() {
       {/* ── КОНТАКТЫ ── */}
       <Anim type="card" delay={50}>
         <Card style={{ textAlign: "center", position: "relative", overflow: "hidden" }}>
+          <BlockHearts count={2} size={14} />
           {/* Рисованная люстра */}
           <Anim type="down"><div style={{ display: "flex", justifyContent: "center", marginBottom: "0.5rem" }}>
             <svg width="120" height="110" viewBox="0 0 120 110" fill="none">
@@ -793,7 +842,8 @@ export default function Index() {
 
       {/* ── RSVP ── */}
       <Anim type="card" delay={50}>
-        <Card>
+        <Card style={{ position: "relative", overflow: "hidden" }}>
+          <BlockHearts count={2} size={14} />
           <Anim type="up"><SectionTitle>Придёте?</SectionTitle></Anim>
           <Anim type="up" delay={100}>
             <p style={{ fontFamily: C.body, fontSize: "0.8rem", color: C.muted, textAlign: "center", fontStyle: "italic", margin: "-0.5rem 0 1.25rem" }}>
