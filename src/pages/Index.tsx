@@ -218,21 +218,79 @@ function CalendarBlock() {
   );
 }
 
-// ── Timeline item
-function TimelineItem({ time, title, note, isLast = false }: { time: string; title: string; note: string; isLast?: boolean }) {
+// ── Hand-drawn SVG icons for timeline
+function IconRings() {
   return (
-    <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: "3.5rem" }}>
-        <div style={{ fontFamily: C.script, fontSize: "1.6rem", color: C.red, lineHeight: 1, whiteSpace: "nowrap" }}>{time}</div>
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <circle cx="13" cy="18" r="8" stroke={C.red} strokeWidth="2" fill="none"/>
+      <circle cx="23" cy="18" r="8" stroke={C.red} strokeWidth="2" fill="none"/>
+      <path d="M13 10 Q13 6 17 6" stroke={C.red} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+      <path d="M23 10 Q23 6 27 6" stroke={C.red} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconCamera() {
+  return (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <rect x="4" y="12" width="28" height="18" rx="3" stroke={C.red} strokeWidth="1.8" fill="none"/>
+      <circle cx="18" cy="21" r="5" stroke={C.red} strokeWidth="1.8" fill="none"/>
+      <path d="M13 12 L15 8 L21 8 L23 12" stroke={C.red} strokeWidth="1.8" fill="none" strokeLinejoin="round"/>
+      <circle cx="27" cy="16" r="1.5" fill={C.red}/>
+    </svg>
+  );
+}
+function IconChampagne() {
+  return (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <path d="M12 4 L14 18 Q14 24 18 24 Q22 24 22 18 L24 4Z" stroke={C.red} strokeWidth="1.8" fill="none" strokeLinejoin="round"/>
+      <line x1="18" y1="24" x2="18" y2="32" stroke={C.red} strokeWidth="1.8" strokeLinecap="round"/>
+      <line x1="13" y1="32" x2="23" y2="32" stroke={C.red} strokeWidth="1.8" strokeLinecap="round"/>
+      <path d="M12 10 L24 10" stroke={C.red} strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M27 6 Q29 4 30 6" stroke={C.red} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+      <path d="M28 9 Q31 8 31 11" stroke={C.red} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconBalloon() {
+  return (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <ellipse cx="14" cy="14" rx="8" ry="10" stroke={C.red} strokeWidth="1.8" fill="none"/>
+      <ellipse cx="23" cy="16" rx="7" ry="9" stroke={C.red} strokeWidth="1.8" fill="none"/>
+      <path d="M14 24 Q14 28 18 32" stroke={C.red} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+      <path d="M23 25 Q23 29 18 32" stroke={C.red} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconHeart() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <path d="M16 26 C16 26 4 18 4 10 C4 6.5 7 4 10.5 4 C12.5 4 14.5 5 16 7 C17.5 5 19.5 4 21.5 4 C25 4 28 6.5 28 10 C28 18 16 26 16 26Z" stroke={C.red} strokeWidth="1.8" fill="none" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+const TIMELINE_ICONS = [IconRings, IconCamera, IconChampagne, IconBalloon, IconHeart];
+
+// ── Timeline item
+function TimelineItem({ time, title, note, icon: Icon, isLast = false }: {
+  time: string; title: string; note: string; icon: React.FC; isLast?: boolean;
+}) {
+  return (
+    <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
+      {/* Left: icon + connector */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: "2.5rem" }}>
+        <div style={{ marginBottom: "2px" }}><Icon /></div>
         {!isLast && (
-          <svg width="16" height="48" viewBox="0 0 16 48" style={{ marginTop: "4px" }}>
-            <path d="M8 0 Q12 12 8 24 Q4 36 8 48" stroke={C.red} strokeWidth="1.5" fill="none" strokeDasharray="4 3" strokeLinecap="round"/>
+          <svg width="16" height="44" viewBox="0 0 16 44" style={{ marginTop: "2px" }}>
+            <path d="M8 0 Q12 11 8 22 Q4 33 8 44" stroke={C.red} strokeWidth="1.5" fill="none" strokeDasharray="4 3" strokeLinecap="round"/>
           </svg>
         )}
       </div>
+      {/* Right: time + text */}
       <div style={{ paddingTop: "4px", paddingBottom: isLast ? 0 : "1.5rem" }}>
-        <div style={{ fontFamily: C.body, fontWeight: 600, fontSize: "0.95rem", color: C.text, marginBottom: "0.2rem" }}>{title}</div>
-        <div style={{ fontFamily: C.body, fontSize: "0.8rem", color: C.muted, lineHeight: 1.5, fontStyle: "italic" }}>{note}</div>
+        <div style={{ fontFamily: C.script, fontSize: "1.7rem", color: C.red, lineHeight: 1, marginBottom: "2px" }}>{time}</div>
+        <div style={{ fontFamily: C.body, fontWeight: 600, fontSize: "0.9rem", color: C.text, marginBottom: "2px" }}>{title}</div>
+        <div style={{ fontFamily: C.body, fontSize: "0.78rem", color: C.muted, lineHeight: 1.5, fontStyle: "italic" }}>{note}</div>
       </div>
     </div>
   );
@@ -397,60 +455,15 @@ export default function Index() {
         <Card>
           <SectionTitle>Во сколько?</SectionTitle>
           {timeline.map((item, i) => (
-            <TimelineItem key={i} time={item.time} title={item.title} note={item.note} isLast={i === timeline.length - 1} />
+            <TimelineItem
+              key={i}
+              time={item.time}
+              title={item.title}
+              note={item.note}
+              icon={TIMELINE_ICONS[i]}
+              isLast={i === timeline.length - 1}
+            />
           ))}
-        </Card>
-      </FadeIn>
-
-      {/* ── COUNTDOWN + фото инстакс ── */}
-      <FadeIn delay={100}>
-        <Card style={{ textAlign: "center" }}>
-          <SectionTitle>До нашей встречи осталось</SectionTitle>
-          <Countdown />
-
-          <ScatteredHearts opacity={0.13} />
-
-          <p style={{ fontFamily: C.script, fontSize: "1.5rem", color: C.muted, marginTop: "0.5rem", marginBottom: "0.25rem", lineHeight: 1.4 }}>
-            С нетерпением ждём вас<br />на нашем празднике любви!
-          </p>
-          <p style={{ fontFamily: C.body, fontSize: "0.85rem", color: C.muted, fontStyle: "italic", margin: "0 0 1.5rem" }}>
-            Ваши Daniil и Elizaveta
-          </p>
-
-          {/* Фото инстакс — поляроиды */}
-          <div style={{ position: "relative", padding: "0.5rem 0 1rem" }}>
-            {/* Первый поляроид — наклонён влево */}
-            <div style={{
-              background: "white", padding: "8px 8px 28px",
-              boxShadow: "2px 4px 14px rgba(0,0,0,0.22)",
-              transform: "rotate(-4deg) translateX(-10px)",
-              display: "inline-block", position: "relative", zIndex: 1,
-              border: `1px solid rgba(0,0,0,0.08)`,
-              marginRight: "-40px",
-            }}>
-              <img
-                src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/a800a7d2-871e-459d-b33c-38676908e94a.jpg"
-                alt=""
-                style={{ width: "clamp(130px, 36vw, 170px)", height: "clamp(100px, 28vw, 130px)", objectFit: "cover", objectPosition: "top", display: "block" }}
-              />
-            </div>
-            {/* Второй поляроид — наклонён вправо */}
-            <div style={{
-              background: "white", padding: "8px 8px 28px",
-              boxShadow: "2px 4px 14px rgba(0,0,0,0.22)",
-              transform: "rotate(3deg) translateX(10px)",
-              display: "inline-block", position: "relative", zIndex: 2,
-              border: `1px solid rgba(0,0,0,0.08)`,
-            }}>
-              <img
-                src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/a800a7d2-871e-459d-b33c-38676908e94a.jpg"
-                alt=""
-                style={{ width: "clamp(130px, 36vw, 170px)", height: "clamp(100px, 28vw, 130px)", objectFit: "cover", objectPosition: "center bottom", display: "block" }}
-              />
-            </div>
-          </div>
-
-          <div style={{ fontSize: "1.5rem", marginTop: "0.5rem", letterSpacing: "0.5em", color: C.red, opacity: 0.5 }}>♥ ♥ ♥</div>
         </Card>
       </FadeIn>
 
@@ -494,6 +507,31 @@ export default function Index() {
               </div>
             ))}
           </div>
+        </Card>
+      </FadeIn>
+
+      {/* ── COUNTDOWN + фото инстакс ── */}
+      <FadeIn delay={100}>
+        <Card style={{ textAlign: "center" }}>
+          <SectionTitle>До нашей встречи осталось</SectionTitle>
+          <Countdown />
+          <ScatteredHearts opacity={0.13} />
+          <p style={{ fontFamily: C.script, fontSize: "1.5rem", color: C.muted, marginTop: "0.5rem", marginBottom: "0.25rem", lineHeight: 1.4 }}>
+            С нетерпением ждём вас<br />на нашем празднике любви!
+          </p>
+          <p style={{ fontFamily: C.body, fontSize: "0.85rem", color: C.muted, fontStyle: "italic", margin: "0 0 1.5rem" }}>
+            Ваши Daniil и Elizaveta
+          </p>
+          {/* Поляроиды */}
+          <div style={{ position: "relative", padding: "0.5rem 0 1rem" }}>
+            <div style={{ background: "white", padding: "8px 8px 28px", boxShadow: "2px 4px 14px rgba(0,0,0,0.22)", transform: "rotate(-4deg) translateX(-10px)", display: "inline-block", position: "relative", zIndex: 1, border: `1px solid rgba(0,0,0,0.08)`, marginRight: "-40px" }}>
+              <img src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/a800a7d2-871e-459d-b33c-38676908e94a.jpg" alt="" style={{ width: "clamp(130px, 36vw, 170px)", height: "clamp(100px, 28vw, 130px)", objectFit: "cover", objectPosition: "top", display: "block" }} />
+            </div>
+            <div style={{ background: "white", padding: "8px 8px 28px", boxShadow: "2px 4px 14px rgba(0,0,0,0.22)", transform: "rotate(3deg) translateX(10px)", display: "inline-block", position: "relative", zIndex: 2, border: `1px solid rgba(0,0,0,0.08)` }}>
+              <img src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/a800a7d2-871e-459d-b33c-38676908e94a.jpg" alt="" style={{ width: "clamp(130px, 36vw, 170px)", height: "clamp(100px, 28vw, 130px)", objectFit: "cover", objectPosition: "center bottom", display: "block" }} />
+            </div>
+          </div>
+          <div style={{ fontSize: "1.5rem", marginTop: "0.5rem", letterSpacing: "0.5em", color: C.red, opacity: 0.5 }}>♥ ♥ ♥</div>
         </Card>
       </FadeIn>
 
