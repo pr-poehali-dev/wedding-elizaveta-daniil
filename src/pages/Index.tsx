@@ -309,14 +309,15 @@ function RSVPForm() {
     padding: "0.75rem 1rem", width: "100%", outline: "none", boxSizing: "border-box",
   };
 
-  const sendToTelegram = () => {
+  const sendToTelegram = async () => {
     if (!name.trim() || !attend) return;
-    const status = attend === "yes"
-      ? `✅ Приду! Гостей: ${guests}`
-      : "❌ К сожалению, не смогу прийти";
-    const text = `Свадьба Elizaveta & Daniil 26.06.2026\n\nИмя: ${name}\n${status}`;
-    const url = `https://t.me/+79045967536?text=${encodeURIComponent(text)}`;
-    window.open(url, "_blank");
+    try {
+      await fetch("https://functions.poehali.dev/8e61f7db-cf5d-45ec-a6c6-e3d9c2d97cd3", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, attend, guests }),
+      });
+    } catch (e) { console.error(e); }
     setSent(true);
   };
 
