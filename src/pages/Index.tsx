@@ -30,30 +30,79 @@ function useCountdown(target: Date) {
   return t;
 }
 
-// ── Fade-in on scroll
-function useFadeIn() {
+// ── Intersection observer hook
+function useInView(threshold = 0.08) {
   const ref = useRef<HTMLDivElement>(null);
   const [vis, setVis] = useState(false);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVis(true); obs.disconnect(); } }, { threshold: 0.08 });
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVis(true); obs.disconnect(); } },
+      { threshold }
+    );
     obs.observe(el);
     return () => obs.disconnect();
-  }, []);
+  }, [threshold]);
   return { ref, vis };
 }
 
-function FadeIn({ children, delay = 0, style = {} }: { children: React.ReactNode; delay?: number; style?: React.CSSProperties }) {
-  const { ref, vis } = useFadeIn();
+type AnimType = "up" | "down" | "left" | "right" | "zoom" | "rotate" | "pop" | "card";
+
+const ANIM_MAP: Record<AnimType, { hidden: React.CSSProperties; visible: React.CSSProperties; transition: string }> = {
+  up:     { hidden: { opacity: 0, transform: "translateY(36px)" },         visible: { opacity: 1, transform: "translateY(0)" },        transition: "opacity 0.75s ease, transform 0.75s cubic-bezier(.22,.68,0,1.2)" },
+  down:   { hidden: { opacity: 0, transform: "translateY(-28px)" },        visible: { opacity: 1, transform: "translateY(0)" },        transition: "opacity 0.7s ease, transform 0.7s ease" },
+  left:   { hidden: { opacity: 0, transform: "translateX(-36px)" },        visible: { opacity: 1, transform: "translateX(0)" },        transition: "opacity 0.7s ease, transform 0.7s cubic-bezier(.22,.68,0,1.1)" },
+  right:  { hidden: { opacity: 0, transform: "translateX(36px)" },         visible: { opacity: 1, transform: "translateX(0)" },        transition: "opacity 0.7s ease, transform 0.7s cubic-bezier(.22,.68,0,1.1)" },
+  zoom:   { hidden: { opacity: 0, transform: "scale(0.88)" },              visible: { opacity: 1, transform: "scale(1)" },            transition: "opacity 0.8s ease, transform 0.8s cubic-bezier(.34,1.56,.64,1)" },
+  rotate: { hidden: { opacity: 0, transform: "rotate(-5deg) scale(0.93)" },visible: { opacity: 1, transform: "rotate(0) scale(1)" },  transition: "opacity 0.7s ease, transform 0.7s cubic-bezier(.34,1.56,.64,1)" },
+  pop:    { hidden: { opacity: 0, transform: "scale(0.65) rotate(-6deg)" },visible: { opacity: 1, transform: "scale(1) rotate(0)" },  transition: "opacity 0.6s ease, transform 0.6s cubic-bezier(.34,1.8,.64,1)" },
+  card:   { hidden: { opacity: 0, transform: "translateY(44px) scale(0.96)" }, visible: { opacity: 1, transform: "translateY(0) scale(1)" }, transition: "opacity 0.8s ease, transform 0.8s cubic-bezier(.22,.68,0,1.15)" },
+};
+
+function Anim({ children, delay = 0, type = "up", style = {}, as = "div" }: {
+  children: React.ReactNode; delay?: number; type?: AnimType;
+  style?: React.CSSProperties; as?: "div" | "span";
+}) {
+  const { ref, vis } = useInView();
+  const map = ANIM_MAP[type];
+  const Tag = as as "div";
   return (
-    <div ref={ref} style={{
-      opacity: vis ? 1 : 0,
-      transform: vis ? "translateY(0)" : "translateY(28px)",
-      transition: `opacity 0.7s ${delay}ms ease, transform 0.7s ${delay}ms ease`,
+    <Tag ref={ref} style={{
+      ...(vis ? map.visible : map.hidden),
+      transition: `${map.transition.replace("0.7s", `0.7s`).replace("opacity", `opacity ${delay}ms`)} , transform ${map.transition.split(",")[1]?.trim() || "0.7s ease"} ${delay}ms`,
+      transitionDelay: `${delay}ms`,
       ...style,
     }}>
       {children}
+    </Tag>
+  );
+}
+
+// Keep FadeIn for backward compat
+function FadeIn({ children, delay = 0, style = {} }: { children: React.ReactNode; delay?: number; style?: React.CSSProperties }) {
+  return <Anim type="card" delay={delay} style={style}>{children}</Anim>;
+}
+
+// Floating hearts particles
+function HeartParticles() {
+  const hearts = [
+    { left: "10%", delay: 0, dur: 3.2, size: 14 },
+    { left: "25%", delay: 0.8, dur: 2.8, size: 10 },
+    { left: "45%", delay: 1.6, dur: 3.6, size: 16 },
+    { left: "65%", delay: 0.4, dur: 3.0, size: 11 },
+    { left: "80%", delay: 1.2, dur: 2.6, size: 13 },
+    { left: "90%", delay: 2.0, dur: 3.4, size: 9 },
+  ];
+  return (
+    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
+      {hearts.map((h, i) => (
+        <div key={i} style={{
+          position: "absolute", bottom: 0, left: h.left,
+          fontSize: h.size, color: "rgba(255,255,255,0.6)",
+          animation: `floatHeart ${h.dur}s ${h.delay}s ease-in infinite`,
+        }}>♥</div>
+      ))}
     </div>
   );
 }
@@ -392,190 +441,214 @@ export default function Index() {
   ];
 
   return (
-    <div style={{ backgroundColor: C.red, minHeight: "100vh", padding: "1.5rem 1rem 4rem" }}>
+    <div style={{ backgroundColor: C.red, minHeight: "100vh", padding: "1.5rem 1rem 4rem", position: "relative" }}>
 
       {/* ── HERO: детское фото ── */}
-      <FadeIn>
+      <Anim type="zoom">
         <Card style={{ padding: "0 0 1.5rem", overflow: "hidden" }}>
-          <div style={{ borderRadius: "1.5rem 1.5rem 0 0", overflow: "hidden" }}>
-            <img
-              src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/60e7db4d-3345-429a-a667-464921ab2534.PNG"
-              alt="Лизка + Данька"
-              style={{ width: "100%", display: "block" }}
-            />
-          </div>
-          <div style={{ padding: "1rem 1.5rem 0", textAlign: "center" }}>
-            <ScatteredHearts />
-            <p style={{ fontFamily: C.body, fontSize: "0.88rem", color: C.muted, lineHeight: 1.7, margin: 0, fontStyle: "italic" }}>
-              Время пронеслось незаметно, и эти двое скоро поженятся!
-            </p>
-          </div>
-        </Card>
-      </FadeIn>
-
-      {/* ── УЗНАЛИ? ── */}
-      <FadeIn delay={100}>
-        <Card style={{ padding: "1.5rem 0 0", overflow: "hidden", textAlign: "center" }}>
-          <div style={{ padding: "0 1.5rem" }}>
-            <SectionTitle>Узнали?</SectionTitle>
-            <p style={{ fontFamily: C.body, fontSize: "0.92rem", color: C.muted, lineHeight: 1.75, margin: "0 0 1.25rem", fontStyle: "italic" }}>
-              Они учились в одной школе, но так и не познакомились.<br />
-              А теперь — скоро свадьба. Да-да, мы сами в шоке!
-            </p>
-          </div>
-
-          {/* Чёрно-белый коллаж с сердечками и красной рамкой */}
-          <div style={{ position: "relative", margin: "0", border: `3px solid ${C.red}` }}>
-            <img
-              src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/1a3e40fc-6c4d-45ec-95fd-93a133b83688.png"
-              alt="Elizaveta & Daniil"
-              style={{ width: "100%", display: "block", filter: "grayscale(0.3)" }}
-            />
-            {/* Белые рисованные сердечки поверх */}
-            <FloatingHearts color="white" />
-            {/* Красная рамка-уголки */}
-            <div style={{ position: "absolute", inset: 0, boxShadow: `inset 0 0 0 4px ${C.red}`, pointerEvents: "none" }} />
-          </div>
-        </Card>
-      </FadeIn>
-
-      {/* ── МЫ ВАС ЛЮБИМ ── */}
-      <FadeIn delay={100}>
-        <Card style={{ textAlign: "center", position: "relative", overflow: "hidden" }}>
-          <ScatteredHearts opacity={0.1} />
-          <SectionTitle>Мы так вас любим!</SectionTitle>
-          <p style={{ fontFamily: C.body, fontSize: "0.92rem", color: C.muted, lineHeight: 1.75, margin: 0, fontStyle: "italic" }}>
-            Поэтому приглашаем стать свидетелями дня рождения нашей семьи, которое состоится{" "}
-            <strong style={{ color: C.red }}>26 июня 2026 года!</strong>
-          </p>
-          <div style={{ fontSize: "2.5rem", marginTop: "1rem", display: "inline-block", animation: "heartbeat 1.4s ease-in-out infinite" }}>♥</div>
-        </Card>
-      </FadeIn>
-
-      {/* ── CALENDAR + WHERE ── */}
-      <FadeIn delay={100}>
-        <Card>
-          <SectionTitle>Когда?</SectionTitle>
-          <CalendarBlock />
-          <div style={{ textAlign: "center", marginTop: "1.75rem" }}>
-            <div style={{ fontFamily: C.script, fontSize: "1.9rem", color: C.red, marginBottom: "0.25rem" }}>📍 Где?</div>
-            <SvgSquiggle />
-            <p style={{ fontFamily: C.body, fontSize: "0.88rem", color: C.muted, margin: "0.75rem 0 1rem", lineHeight: 1.7 }}>
-              Церемония: <strong style={{ color: C.text }}>Суздаль</strong><br />
-              Банкет: <strong style={{ color: C.text }}>ресторан «Вновь», Владимир</strong><br />
-              <span style={{ fontSize: "0.78rem" }}>ул. Летне-Перевозинская, 1А</span>
-            </p>
-            {/* Фото ресторана */}
-            <div style={{ borderRadius: "1rem", overflow: "hidden", border: `2px solid ${C.red}`, marginBottom: "1.25rem" }}>
+          <Anim type="down">
+            <div style={{ borderRadius: "1.5rem 1.5rem 0 0", overflow: "hidden" }}>
               <img
-                src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/2c8be2d5-8fd3-40a4-8b57-c6362d933e78.jpg"
-                alt="Ресторан Вновь"
-                style={{ width: "100%", display: "block", maxHeight: "200px", objectFit: "cover", objectPosition: "center" }}
+                src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/60e7db4d-3345-429a-a667-464921ab2534.PNG"
+                alt="Лизка + Данька"
+                style={{ width: "100%", display: "block", transition: "transform 0.6s ease", }}
               />
             </div>
-            <a href="https://yandex.ru/maps/?text=Владимир+ул.+Летне-Перевозинская+1А" target="_blank" rel="noopener noreferrer" style={{
-              fontFamily: C.body, fontSize: "0.8rem", letterSpacing: "0.12em", textTransform: "uppercase",
-              padding: "0.6rem 1.5rem", border: `1.5px solid ${C.red}`, color: C.red,
-              textDecoration: "none", borderRadius: "2rem", display: "inline-block",
-            }}>Открыть карту</a>
+          </Anim>
+          <div style={{ padding: "1rem 1.5rem 0", textAlign: "center" }}>
+            <ScatteredHearts />
+            <Anim type="up" delay={200}>
+              <p style={{ fontFamily: C.body, fontSize: "0.88rem", color: C.muted, lineHeight: 1.7, margin: 0, fontStyle: "italic" }}>
+                Время пронеслось незаметно, и эти двое скоро поженятся!
+              </p>
+            </Anim>
           </div>
         </Card>
-      </FadeIn>
+      </Anim>
+
+      {/* ── УЗНАЛИ? ── */}
+      <Anim type="card" delay={50}>
+        <Card style={{ padding: "1.5rem 0 0", overflow: "hidden", textAlign: "center" }}>
+          <div style={{ padding: "0 1.5rem" }}>
+            <Anim type="up"><SectionTitle>Узнали?</SectionTitle></Anim>
+            <Anim type="up" delay={120}>
+              <p style={{ fontFamily: C.body, fontSize: "0.92rem", color: C.muted, lineHeight: 1.75, margin: "0 0 1.25rem", fontStyle: "italic" }}>
+                Они учились в одной школе, но так и не познакомились.<br />
+                А теперь — скоро свадьба. Да-да, мы сами в шоке!
+              </p>
+            </Anim>
+          </div>
+          <Anim type="zoom" delay={200}>
+            <div style={{ position: "relative", margin: "0", border: `3px solid ${C.red}` }}>
+              <img
+                src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/1a3e40fc-6c4d-45ec-95fd-93a133b83688.png"
+                alt="Elizaveta & Daniil"
+                style={{ width: "100%", display: "block", filter: "grayscale(0.3)" }}
+              />
+              <FloatingHearts color="white" />
+              <div style={{ position: "absolute", inset: 0, boxShadow: `inset 0 0 0 4px ${C.red}`, pointerEvents: "none" }} />
+            </div>
+          </Anim>
+        </Card>
+      </Anim>
+
+      {/* ── МЫ ВАС ЛЮБИМ ── */}
+      <Anim type="card" delay={50}>
+        <Card style={{ textAlign: "center", position: "relative", overflow: "hidden" }}>
+          <HeartParticles />
+          <ScatteredHearts opacity={0.1} />
+          <Anim type="rotate"><SectionTitle>Мы так вас любим!</SectionTitle></Anim>
+          <Anim type="up" delay={150}>
+            <p style={{ fontFamily: C.body, fontSize: "0.92rem", color: C.muted, lineHeight: 1.75, margin: 0, fontStyle: "italic" }}>
+              Поэтому приглашаем стать свидетелями дня рождения нашей семьи, которое состоится{" "}
+              <strong style={{ color: C.red }}>26 июня 2026 года!</strong>
+            </p>
+          </Anim>
+          <Anim type="pop" delay={300}>
+            <div style={{ fontSize: "2.5rem", marginTop: "1rem", display: "inline-block", animation: "heartbeat 1.4s ease-in-out infinite" }}>♥</div>
+          </Anim>
+        </Card>
+      </Anim>
+
+      {/* ── CALENDAR + WHERE ── */}
+      <Anim type="card" delay={50}>
+        <Card>
+          <Anim type="up"><SectionTitle>Когда?</SectionTitle></Anim>
+          <Anim type="zoom" delay={100}><CalendarBlock /></Anim>
+          <div style={{ textAlign: "center", marginTop: "1.75rem" }}>
+            <Anim type="left" delay={200}>
+              <div style={{ fontFamily: C.script, fontSize: "1.9rem", color: C.red, marginBottom: "0.25rem" }}>📍 Где?</div>
+              <SvgSquiggle />
+              <p style={{ fontFamily: C.body, fontSize: "0.88rem", color: C.muted, margin: "0.75rem 0 1rem", lineHeight: 1.7 }}>
+                Церемония: <strong style={{ color: C.text }}>Суздаль</strong><br />
+                Банкет: <strong style={{ color: C.text }}>ресторан «Вновь», Владимир</strong><br />
+                <span style={{ fontSize: "0.78rem" }}>ул. Летне-Перевозинская, 1А</span>
+              </p>
+            </Anim>
+            <Anim type="zoom" delay={300}>
+              <div style={{ borderRadius: "1rem", overflow: "hidden", border: `2px solid ${C.red}`, marginBottom: "1.25rem" }}>
+                <img
+                  src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/2c8be2d5-8fd3-40a4-8b57-c6362d933e78.jpg"
+                  alt="Ресторан Вновь"
+                  style={{ width: "100%", display: "block", maxHeight: "200px", objectFit: "cover", objectPosition: "center" }}
+                />
+              </div>
+            </Anim>
+            <Anim type="up" delay={400}>
+              <a href="https://yandex.ru/maps/?text=Владимир+ул.+Летне-Перевозинская+1А" target="_blank" rel="noopener noreferrer" style={{
+                fontFamily: C.body, fontSize: "0.8rem", letterSpacing: "0.12em", textTransform: "uppercase",
+                padding: "0.6rem 1.5rem", border: `1.5px solid ${C.red}`, color: C.red,
+                textDecoration: "none", borderRadius: "2rem", display: "inline-block",
+              }}>Открыть карту</a>
+            </Anim>
+          </div>
+        </Card>
+      </Anim>
 
       {/* ── TIMELINE ── */}
-      <FadeIn delay={100}>
+      <Anim type="card" delay={50}>
         <Card>
-          <SectionTitle>Во сколько?</SectionTitle>
+          <Anim type="up"><SectionTitle>Во сколько?</SectionTitle></Anim>
           {timeline.map((item, i) => (
-            <TimelineItem
-              key={i}
-              time={item.time}
-              title={item.title}
-              note={item.note}
-              icon={TIMELINE_ICONS[i]}
-              isLast={i === timeline.length - 1}
-            />
+            <Anim key={i} type="left" delay={i * 100}>
+              <TimelineItem
+                time={item.time}
+                title={item.title}
+                note={item.note}
+                icon={TIMELINE_ICONS[i]}
+                isLast={i === timeline.length - 1}
+              />
+            </Anim>
           ))}
         </Card>
-      </FadeIn>
+      </Anim>
 
       {/* ── ДРЕСС-КОД ── */}
-      <FadeIn delay={100}>
+      <Anim type="card" delay={50}>
         <Card style={{ textAlign: "center" }}>
-          <SectionTitle>Дресс-код</SectionTitle>
-
-          <p style={{ fontFamily: C.body, fontSize: "0.88rem", color: C.muted, lineHeight: 1.75, margin: "0 0 1.5rem", fontStyle: "italic" }}>
-            Для нас главное — ваше присутствие и хорошее настроение!<br />
-            Но будем очень признательны, если вы поддержите<br />
-            <strong style={{ color: C.text, fontStyle: "normal" }}>спокойную природную цветовую гамму</strong><br />
-            и выберете <strong style={{ color: C.text, fontStyle: "normal" }}>однотонные наряды без мелкого принта</strong>.
-          </p>
-
-          {/* Коллаж с нарядами */}
-          <div style={{ borderRadius: "1rem", overflow: "hidden", border: `2px solid rgba(185,28,28,0.2)`, marginBottom: "1.5rem" }}>
-            <img
-              src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/789374e5-7e42-4b87-af5f-41f068bef456.png"
-              alt="Дресс-код"
-              style={{ width: "100%", display: "block" }}
-            />
-          </div>
-
-
+          <Anim type="up"><SectionTitle>Дресс-код</SectionTitle></Anim>
+          <Anim type="up" delay={100}>
+            <p style={{ fontFamily: C.body, fontSize: "0.88rem", color: C.muted, lineHeight: 1.75, margin: "0 0 1.5rem", fontStyle: "italic" }}>
+              Для нас главное — ваше присутствие и хорошее настроение!<br />
+              Но будем очень признательны, если вы поддержите<br />
+              <strong style={{ color: C.text, fontStyle: "normal" }}>спокойную природную цветовую гамму</strong><br />
+              и выберете <strong style={{ color: C.text, fontStyle: "normal" }}>однотонные наряды без мелкого принта</strong>.
+            </p>
+          </Anim>
+          <Anim type="zoom" delay={200}>
+            <div style={{ borderRadius: "1rem", overflow: "hidden", border: `2px solid rgba(185,28,28,0.2)`, marginBottom: "1.5rem" }}>
+              <img
+                src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/789374e5-7e42-4b87-af5f-41f068bef456.png"
+                alt="Дресс-код"
+                style={{ width: "100%", display: "block" }}
+              />
+            </div>
+          </Anim>
         </Card>
-      </FadeIn>
+      </Anim>
 
       {/* ── ВАЖНОЕ ── */}
-      <FadeIn delay={100}>
+      <Anim type="card" delay={50}>
         <Card>
-          <SectionTitle>Важное</SectionTitle>
+          <Anim type="up"><SectionTitle>Важное</SectionTitle></Anim>
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
             {[
               { icon: "🎁", title: "Подарки", text: "Дорогие гости, приносите радость в душе, а подарки — в конверте" },
               { icon: "🚗", title: "Транспорт", text: "Нужна помощь с дорогой до Суздаля? Напишите нам заранее — поможем!" },
             ].map(({ icon, title, text }, i) => (
-              <div key={i}>
-                {i > 0 && <div style={{ height: 1, backgroundColor: "rgba(185,28,28,0.12)", marginBottom: "1.25rem" }} />}
-                <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: "2rem", marginBottom: "0.35rem" }}>{icon}</div>
-                  <div style={{ fontFamily: C.script, fontSize: "1.5rem", color: C.red, marginBottom: "0.4rem" }}>{title}</div>
-                  <p style={{ fontFamily: C.body, fontSize: "0.85rem", color: C.muted, lineHeight: 1.6, margin: 0, fontStyle: "italic" }}>{text}</p>
+              <Anim key={i} type={i === 0 ? "left" : "right"} delay={i * 150}>
+                <div>
+                  {i > 0 && <div style={{ height: 1, backgroundColor: "rgba(185,28,28,0.12)", marginBottom: "1.25rem" }} />}
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "2rem", marginBottom: "0.35rem" }}>{icon}</div>
+                    <div style={{ fontFamily: C.script, fontSize: "1.5rem", color: C.red, marginBottom: "0.4rem" }}>{title}</div>
+                    <p style={{ fontFamily: C.body, fontSize: "0.85rem", color: C.muted, lineHeight: 1.6, margin: 0, fontStyle: "italic" }}>{text}</p>
+                  </div>
                 </div>
-              </div>
+              </Anim>
             ))}
           </div>
         </Card>
-      </FadeIn>
+      </Anim>
 
       {/* ── COUNTDOWN + фото инстакс ── */}
-      <FadeIn delay={100}>
+      <Anim type="card" delay={50}>
         <Card style={{ textAlign: "center" }}>
-          <SectionTitle>До нашей встречи осталось</SectionTitle>
-          <Countdown />
+          <Anim type="up"><SectionTitle>До нашей встречи осталось</SectionTitle></Anim>
+          <Anim type="zoom" delay={100}><Countdown /></Anim>
           <ScatteredHearts opacity={0.13} />
-          <p style={{ fontFamily: C.script, fontSize: "1.5rem", color: C.muted, marginTop: "0.5rem", marginBottom: "0.25rem", lineHeight: 1.4 }}>
-            С нетерпением ждём вас<br />на нашем празднике любви!
-          </p>
-          <p style={{ fontFamily: C.body, fontSize: "0.85rem", color: C.muted, fontStyle: "italic", margin: "0 0 1.5rem" }}>
-            Ваши Daniil и Elizaveta
-          </p>
+          <Anim type="up" delay={200}>
+            <p style={{ fontFamily: C.script, fontSize: "1.5rem", color: C.muted, marginTop: "0.5rem", marginBottom: "0.25rem", lineHeight: 1.4 }}>
+              С нетерпением ждём вас<br />на нашем празднике любви!
+            </p>
+            <p style={{ fontFamily: C.body, fontSize: "0.85rem", color: C.muted, fontStyle: "italic", margin: "0 0 1.5rem" }}>
+              Ваши Daniil и Elizaveta
+            </p>
+          </Anim>
           {/* Поляроиды */}
           <div style={{ position: "relative", padding: "0.5rem 0 1rem" }}>
-            <div style={{ background: "white", padding: "8px 8px 28px", boxShadow: "2px 4px 14px rgba(0,0,0,0.22)", transform: "rotate(-4deg) translateX(-10px)", display: "inline-block", position: "relative", zIndex: 1, border: `1px solid rgba(0,0,0,0.08)`, marginRight: "-40px" }}>
-              <img src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/a800a7d2-871e-459d-b33c-38676908e94a.jpg" alt="" style={{ width: "clamp(130px, 36vw, 170px)", height: "clamp(100px, 28vw, 130px)", objectFit: "cover", objectPosition: "top", display: "block" }} />
-            </div>
-            <div style={{ background: "white", padding: "8px 8px 28px", boxShadow: "2px 4px 14px rgba(0,0,0,0.22)", transform: "rotate(3deg) translateX(10px)", display: "inline-block", position: "relative", zIndex: 2, border: `1px solid rgba(0,0,0,0.08)` }}>
-              <img src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/a800a7d2-871e-459d-b33c-38676908e94a.jpg" alt="" style={{ width: "clamp(130px, 36vw, 170px)", height: "clamp(100px, 28vw, 130px)", objectFit: "cover", objectPosition: "center bottom", display: "block" }} />
-            </div>
+            <Anim type="rotate" delay={100} style={{ display: "inline-block" }}>
+              <div style={{ background: "white", padding: "8px 8px 28px", boxShadow: "2px 4px 14px rgba(0,0,0,0.22)", transform: "rotate(-4deg) translateX(-10px)", display: "inline-block", position: "relative", zIndex: 1, border: `1px solid rgba(0,0,0,0.08)`, marginRight: "-40px" }}>
+                <img src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/a800a7d2-871e-459d-b33c-38676908e94a.jpg" alt="" style={{ width: "clamp(130px, 36vw, 170px)", height: "clamp(100px, 28vw, 130px)", objectFit: "cover", objectPosition: "top", display: "block" }} />
+              </div>
+            </Anim>
+            <Anim type="rotate" delay={200} style={{ display: "inline-block" }}>
+              <div style={{ background: "white", padding: "8px 8px 28px", boxShadow: "2px 4px 14px rgba(0,0,0,0.22)", transform: "rotate(3deg) translateX(10px)", display: "inline-block", position: "relative", zIndex: 2, border: `1px solid rgba(0,0,0,0.08)` }}>
+                <img src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/a800a7d2-871e-459d-b33c-38676908e94a.jpg" alt="" style={{ width: "clamp(130px, 36vw, 170px)", height: "clamp(100px, 28vw, 130px)", objectFit: "cover", objectPosition: "center bottom", display: "block" }} />
+              </div>
+            </Anim>
           </div>
-          <div style={{ fontSize: "1.5rem", marginTop: "0.5rem", letterSpacing: "0.5em", color: C.red, opacity: 0.5 }}>♥ ♥ ♥</div>
+          <Anim type="pop" delay={300}>
+            <div style={{ fontSize: "1.5rem", marginTop: "0.5rem", letterSpacing: "0.5em", color: C.red, opacity: 0.5 }}>♥ ♥ ♥</div>
+          </Anim>
         </Card>
-      </FadeIn>
+      </Anim>
 
       {/* ── КОНТАКТЫ ── */}
-      <FadeIn delay={100}>
+      <Anim type="card" delay={50}>
         <Card style={{ textAlign: "center", position: "relative", overflow: "hidden" }}>
           {/* Рисованная люстра */}
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.5rem" }}>
+          <Anim type="down"><div style={{ display: "flex", justifyContent: "center", marginBottom: "0.5rem" }}>
             <svg width="120" height="110" viewBox="0 0 120 110" fill="none">
               {/* Ceiling mount */}
               <rect x="48" y="2" width="24" height="6" rx="2" stroke={C.red} strokeWidth="1.8" fill="none"/>
@@ -611,62 +684,61 @@ export default function Index() {
                 </g>
               ))}
             </svg>
-          </div>
+          </div></Anim>
 
-          <SectionTitle>Есть вопросы?</SectionTitle>
-          <p style={{ fontFamily: C.body, fontSize: "0.85rem", color: C.muted, fontStyle: "italic", margin: "0 0 1.5rem", lineHeight: 1.7 }}>
-            Пишите или звоните — мы всегда на связи!
-          </p>
+          <Anim type="up" delay={100}><SectionTitle>Есть вопросы?</SectionTitle></Anim>
+          <Anim type="up" delay={150}>
+            <p style={{ fontFamily: C.body, fontSize: "0.85rem", color: C.muted, fontStyle: "italic", margin: "0 0 1.5rem", lineHeight: 1.7 }}>
+              Пишите или звоните — мы всегда на связи!
+            </p>
+          </Anim>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {[
               { role: "Жених", name: "Даниил", phone: "8-910-172-38-72", raw: "89101723872" },
               { role: "Невеста", name: "Елизавета", phone: "8-904-596-75-36", raw: "89045967536" },
-            ].map(({ role, name, phone, raw }) => (
-              <a key={role} href={`tel:${raw}`} style={{ textDecoration: "none" }}>
-                <div style={{
-                  display: "flex", alignItems: "center", gap: "1rem",
-                  border: `1.5px solid rgba(185,28,28,0.25)`,
-                  borderRadius: "1rem", padding: "0.9rem 1.2rem",
-                  backgroundColor: "white",
-                  transition: "all 0.2s ease",
-                }}>
+            ].map(({ role, name, phone, raw }, i) => (
+              <Anim key={role} type={i === 0 ? "left" : "right"} delay={200 + i * 100}>
+                <a href={`tel:${raw}`} style={{ textDecoration: "none" }}>
                   <div style={{
-                    width: 42, height: 42, borderRadius: "50%",
-                    backgroundColor: "rgba(185,28,28,0.08)",
-                    border: `1.5px solid ${C.red}`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    flexShrink: 0,
+                    display: "flex", alignItems: "center", gap: "1rem",
+                    border: `1.5px solid rgba(185,28,28,0.25)`,
+                    borderRadius: "1rem", padding: "0.9rem 1.2rem",
+                    backgroundColor: "white", transition: "all 0.2s ease",
                   }}>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <path d="M4 2 C4 2 3 2 2.5 3 C2 4 2 6 4 8 C6 10 8 12 10 13.5 C12 15 14.5 16.5 16 16.5 C17.5 16.5 18 16 18 15 L18 14 C18 13.5 17.5 13 17 13 L15 13 C14.5 13 14 13.5 14 14 C13 13.5 11 12 9 10 C7 8 5.5 6 5 5 C5.5 5 6 4.5 6 4 L6 2 C6 1.5 5.5 1 5 1 L4.5 1 C4 1 4 1.5 4 2Z" stroke={C.red} strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
-                    </svg>
+                    <div style={{ width: 42, height: 42, borderRadius: "50%", backgroundColor: "rgba(185,28,28,0.08)", border: `1.5px solid ${C.red}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M4 2 C4 2 3 2 2.5 3 C2 4 2 6 4 8 C6 10 8 12 10 13.5 C12 15 14.5 16.5 16 16.5 C17.5 16.5 18 16 18 15 L18 14 C18 13.5 17.5 13 17 13 L15 13 C14.5 13 14 13.5 14 14 C13 13.5 11 12 9 10 C7 8 5.5 6 5 5 C5.5 5 6 4.5 6 4 L6 2 C6 1.5 5.5 1 5 1 L4.5 1 C4 1 4 1.5 4 2Z" stroke={C.red} strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <div style={{ textAlign: "left" }}>
+                      <div style={{ fontFamily: C.script, fontSize: "1.2rem", color: C.red, lineHeight: 1 }}>{role} — {name}</div>
+                      <div style={{ fontFamily: C.body, fontSize: "0.88rem", color: C.text, marginTop: "2px", fontWeight: 600 }}>{phone}</div>
+                    </div>
+                    <div style={{ marginLeft: "auto", color: C.red, opacity: 0.5, fontSize: "1rem" }}>♥</div>
                   </div>
-                  <div style={{ textAlign: "left" }}>
-                    <div style={{ fontFamily: C.script, fontSize: "1.2rem", color: C.red, lineHeight: 1 }}>{role} — {name}</div>
-                    <div style={{ fontFamily: C.body, fontSize: "0.88rem", color: C.text, marginTop: "2px", fontWeight: 600 }}>{phone}</div>
-                  </div>
-                  <div style={{ marginLeft: "auto", color: C.red, opacity: 0.5, fontSize: "1rem" }}>♥</div>
-                </div>
-              </a>
+                </a>
+              </Anim>
             ))}
           </div>
         </Card>
-      </FadeIn>
+      </Anim>
 
       {/* ── RSVP ── */}
-      <FadeIn delay={100}>
+      <Anim type="card" delay={50}>
         <Card>
-          <SectionTitle>Придёте?</SectionTitle>
-          <p style={{ fontFamily: C.body, fontSize: "0.8rem", color: C.muted, textAlign: "center", fontStyle: "italic", margin: "-0.5rem 0 1.25rem" }}>
-            Просим ответить до 1 июня 2026
-          </p>
+          <Anim type="up"><SectionTitle>Придёте?</SectionTitle></Anim>
+          <Anim type="up" delay={100}>
+            <p style={{ fontFamily: C.body, fontSize: "0.8rem", color: C.muted, textAlign: "center", fontStyle: "italic", margin: "-0.5rem 0 1.25rem" }}>
+              Просим ответить до 1 июня 2026
+            </p>
+          </Anim>
           <RSVPForm />
         </Card>
-      </FadeIn>
+      </Anim>
 
       {/* ── FOOTER ── */}
-      <FadeIn delay={100}>
+      <Anim type="up" delay={100}>
         <div style={{ textAlign: "center", paddingTop: "0.75rem" }}>
           <ScatteredHearts color="rgba(255,255,255,0.4)" opacity={0.5} />
           <div style={{ fontFamily: C.script, fontSize: "clamp(2.5rem, 8vw, 4rem)", color: C.cream, lineHeight: 1 }}>E &amp; D</div>
@@ -675,7 +747,7 @@ export default function Index() {
             26 · VI · 2026
           </p>
         </div>
-      </FadeIn>
+      </Anim>
 
     </div>
   );
