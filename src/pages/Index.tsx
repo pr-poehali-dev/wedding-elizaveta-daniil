@@ -297,66 +297,41 @@ export default function Index() {
     <div style={{ backgroundColor: C.red, minHeight: "100vh", padding: "1.5rem 1rem 4rem" }}>
 
       {/* ── HERO CARD ── */}
-      <Card style={{ textAlign: "center", padding: "2rem 1.5rem 1.5rem" }}>
-        <div style={{ display: "flex", justifyContent: "center", gap: "1rem", marginBottom: "1rem" }}>
-          {[{ src: photos[0], label: "невеста" }, { src: photos[1], label: "жених" }].map(({ src, label }) => (
-            <div key={label} style={{ position: "relative" }}>
-              <div style={{
-                width: "clamp(110px, 28vw, 150px)",
-                height: "clamp(110px, 28vw, 150px)",
-                borderRadius: "50%",
-                overflow: "hidden",
-                border: `3px solid ${C.red}`,
-                boxShadow: "0 4px 16px rgba(185,28,28,0.3)",
-              }}>
-                <img src={src} alt={label} style={{ width: "100%", height: "100%", objectFit: "cover", filter: "saturate(0.75)" }} />
-              </div>
-              <div style={{
-                position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)",
-                fontFamily: C.script, fontSize: "1rem", color: C.red,
-                backgroundColor: C.cream, padding: "1px 10px", borderRadius: "1rem",
-                border: `1.5px solid ${C.red}`, whiteSpace: "nowrap",
-              }}>{label}</div>
-            </div>
-          ))}
+      <Card style={{ textAlign: "center", padding: "0 0 1.5rem", overflow: "hidden" }}>
+        {/* Детское фото на всю ширину карточки */}
+        <div style={{ width: "100%", borderRadius: "1.5rem 1.5rem 0 0", overflow: "hidden", marginBottom: "1.25rem" }}>
+          <img
+            src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/60e7db4d-3345-429a-a667-464921ab2534.PNG"
+            alt="Лизка + Данька"
+            style={{ width: "100%", display: "block", objectFit: "cover" }}
+          />
         </div>
 
-        <div style={{ fontSize: "1.2rem", color: C.red, letterSpacing: "0.5em", opacity: 0.4, margin: "1rem 0 0.5rem" }}>♥ ♥ ♥</div>
-
-        <div style={{ fontFamily: C.script, fontSize: "clamp(2.6rem, 9vw, 4rem)", color: C.red, lineHeight: 1.1 }}>
-          Elizaveta<br />
-          <span style={{ fontSize: "0.55em", color: C.muted }}>+</span><br />
-          Daniil<br />
-          <span style={{ fontSize: "0.55em" }}>= любовь ♥</span>
-        </div>
-
-        <div style={{
-          display: "inline-block",
-          backgroundColor: C.red,
-          borderRadius: "2rem",
-          padding: "0.5rem 2rem",
-          marginTop: "1.25rem",
-          fontFamily: C.script,
-          fontSize: "1.5rem",
-          color: "white",
-        }}>
-          26 июня 2026 года
+        <div style={{ padding: "0 1.5rem" }}>
+          <div style={{ fontSize: "1.2rem", color: C.red, letterSpacing: "0.5em", opacity: 0.4, marginBottom: "0.5rem" }}>♥ ♥ ♥</div>
+          <p style={{ fontFamily: C.body, fontSize: "0.88rem", color: C.muted, lineHeight: 1.7, margin: 0, fontStyle: "italic" }}>
+            Время пронеслось незаметно, и эти двое скоро поженятся!<br />
+            Да-да, мы сами в шоке!
+          </p>
         </div>
       </Card>
 
       {/* ── УЗНАЛИ? ── */}
-      <Card style={{ textAlign: "center" }}>
-        <SectionTitle>Узнали?</SectionTitle>
-        <p style={{ fontFamily: C.body, fontSize: "0.92rem", color: C.muted, lineHeight: 1.75, margin: "0 0 1.25rem", fontStyle: "italic" }}>
-          Время пронеслось незаметно, и у этих двух людей скоро свадьба!<br />
-          Да-да, мы сами в шоке!
+      <Card style={{ textAlign: "center", padding: "0 0 1.5rem", overflow: "hidden" }}>
+        <SectionTitle>
+          <span style={{ display: "block", paddingTop: "1.5rem" }}>Узнали?</span>
+        </SectionTitle>
+        <p style={{ fontFamily: C.body, fontSize: "0.92rem", color: C.muted, lineHeight: 1.75, margin: "0 0 1.25rem", fontStyle: "italic", padding: "0 1.5rem" }}>
+          Эти двое влюблены с самого детства!<br />
+          А теперь — скоро свадьба. Да-да, мы сами в шоке!
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", borderRadius: "1rem", overflow: "hidden", border: `2px solid ${C.red}` }}>
-          {photos.map((src, i) => (
-            <div key={i} style={{ aspectRatio: "1", overflow: "hidden" }}>
-              <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(0.4) saturate(0.8)" }} />
-            </div>
-          ))}
+        {/* Фото пары — на всю ширину */}
+        <div style={{ width: "100%", overflow: "hidden" }}>
+          <img
+            src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/1a3e40fc-6c4d-45ec-95fd-93a133b83688.png"
+            alt="Elizaveta & Daniil"
+            style={{ width: "100%", display: "block", objectFit: "cover" }}
+          />
         </div>
       </Card>
 
