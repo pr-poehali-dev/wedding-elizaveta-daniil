@@ -300,12 +300,24 @@ function TimelineItem({ time, title, note, icon: Icon, isLast = false }: {
 function RSVPForm() {
   const [name, setName] = useState("");
   const [attend, setAttend] = useState<"yes" | "no" | "">("");
+  const [guests, setGuests] = useState("1");
   const [sent, setSent] = useState(false);
 
   const inputSt: React.CSSProperties = {
     fontFamily: C.body, fontSize: "0.92rem", color: C.text, backgroundColor: "white",
     border: `1.5px solid rgba(185,28,28,0.3)`, borderRadius: "0.6rem",
     padding: "0.75rem 1rem", width: "100%", outline: "none", boxSizing: "border-box",
+  };
+
+  const sendToTelegram = () => {
+    if (!name.trim() || !attend) return;
+    const status = attend === "yes"
+      ? `✅ Приду! Гостей: ${guests}`
+      : "❌ К сожалению, не смогу прийти";
+    const text = `Свадьба Elizaveta & Daniil 26.06.2026\n\nИмя: ${name}\n${status}`;
+    const url = `https://t.me/+79045967536?text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank");
+    setSent(true);
   };
 
   if (sent) {
@@ -315,7 +327,9 @@ function RSVPForm() {
         <div style={{ fontFamily: C.script, fontSize: "2rem", color: C.red, marginTop: "0.5rem" }}>
           {attend === "yes" ? "Ждём вас!" : "Очень жаль..."}
         </div>
-        <p style={{ fontFamily: C.body, fontSize: "0.9rem", color: C.muted, margin: "0.5rem 0 0" }}>Спасибо, {name}!</p>
+        <p style={{ fontFamily: C.body, fontSize: "0.9rem", color: C.muted, margin: "0.5rem 0 0" }}>
+          Спасибо, {name}! Telegram открылся — просто отправьте сообщение.
+        </p>
       </div>
     );
   }
@@ -341,7 +355,17 @@ function RSVPForm() {
           ))}
         </div>
       </div>
-      <button onClick={() => { if (name.trim() && attend) setSent(true); }} style={{
+      {attend === "yes" && (
+        <div>
+          <label style={{ fontFamily: C.body, fontSize: "0.72rem", letterSpacing: "0.15em", textTransform: "uppercase", color: C.muted, display: "block", marginBottom: "0.35rem" }}>Количество гостей</label>
+          <select value={guests} onChange={e => setGuests(e.target.value)} style={{ ...inputSt, appearance: "none" as const }}>
+            {["1", "2", "3", "4"].map(n => (
+              <option key={n} value={n}>{n} {n === "1" ? "гость" : "гостя"}</option>
+            ))}
+          </select>
+        </div>
+      )}
+      <button onClick={sendToTelegram} style={{
         fontFamily: C.body, fontSize: "0.85rem", fontWeight: 700, letterSpacing: "0.1em",
         textTransform: "uppercase", padding: "0.85rem", borderRadius: "2rem",
         border: `1.5px solid ${C.red}`,
@@ -350,7 +374,7 @@ function RSVPForm() {
         cursor: "pointer", transition: "all 0.25s ease",
         opacity: name.trim() && attend ? 1 : 0.4,
       }}>
-        Отправить ♥
+        Отправить в Telegram ♥
       </button>
     </div>
   );
@@ -382,8 +406,7 @@ export default function Index() {
           <div style={{ padding: "1rem 1.5rem 0", textAlign: "center" }}>
             <ScatteredHearts />
             <p style={{ fontFamily: C.body, fontSize: "0.88rem", color: C.muted, lineHeight: 1.7, margin: 0, fontStyle: "italic" }}>
-              Время пронеслось незаметно, и эти двое скоро поженятся!<br />
-              Да-да, мы сами в шоке!
+              Время пронеслось незаметно, и эти двое скоро поженятся!
             </p>
           </div>
         </Card>
