@@ -479,20 +479,50 @@ export default function Index() {
       <FadeIn delay={100}>
         <Card style={{ textAlign: "center" }}>
           <SectionTitle>Дресс-код</SectionTitle>
-          <div style={{ display: "flex", justifyContent: "center", gap: "2.5rem", marginBottom: "1rem" }}>
+
+          <p style={{ fontFamily: C.body, fontSize: "0.88rem", color: C.muted, lineHeight: 1.75, margin: "0 0 1.5rem", fontStyle: "italic" }}>
+            Для нас главное — ваше присутствие и хорошее настроение!<br />
+            Но будем очень признательны, если вы поддержите<br />
+            <strong style={{ color: C.text, fontStyle: "normal" }}>спокойную природную цветовую гамму</strong><br />
+            и выберете <strong style={{ color: C.text, fontStyle: "normal" }}>однотонные наряды без мелкого принта</strong>.
+          </p>
+
+          {/* Коллаж с нарядами */}
+          <div style={{ borderRadius: "1rem", overflow: "hidden", border: `2px solid rgba(185,28,28,0.2)`, marginBottom: "1.5rem" }}>
+            <img
+              src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/bucket/789374e5-7e42-4b87-af5f-41f068bef456.png"
+              alt="Дресс-код"
+              style={{ width: "100%", display: "block" }}
+            />
+          </div>
+
+          {/* Палитра цветов */}
+          <div style={{ fontFamily: C.script, fontSize: "1.3rem", color: C.red, marginBottom: "0.75rem" }}>
+            Ваша палитра
+          </div>
+          <SvgSquiggle />
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0.6rem", marginTop: "1rem" }}>
             {[
-              { color: "#111", label: "Чёрный", shadow: "0 4px 12px rgba(0,0,0,0.3)", border: false },
-              { color: "#f9f5ec", label: "Белый", shadow: "0 4px 12px rgba(0,0,0,0.1)", border: true },
-            ].map(({ color, label, shadow, border }) => (
-              <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem" }}>
-                <div style={{ width: 52, height: 52, borderRadius: "50%", backgroundColor: color, border: border ? `2px solid ${C.red}` : "none", boxShadow: shadow }} />
-                <span style={{ fontFamily: C.body, fontSize: "0.75rem", letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted }}>{label}</span>
+              { color: "#e8e0d0", label: "Молочный" },
+              { color: "#d9c9a8", label: "Бежевый" },
+              { color: "#c9a99a", label: "Пудровый" },
+              { color: "#9e7b6e", label: "Какао" },
+              { color: "#6b4a3a", label: "Шоколад" },
+              { color: "#b5c9a0", label: "Шалфей" },
+              { color: "#7a9e6e", label: "Оливка" },
+              { color: "#3d6b3a", label: "Зелёный" },
+            ].map(({ color, label }) => (
+              <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.35rem" }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: "50%",
+                  backgroundColor: color,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                  border: "2px solid rgba(255,255,255,0.8)",
+                }} />
+                <span style={{ fontFamily: C.body, fontSize: "0.6rem", color: C.muted, letterSpacing: "0.05em" }}>{label}</span>
               </div>
             ))}
           </div>
-          <p style={{ fontFamily: C.body, fontSize: "0.82rem", color: C.muted, fontStyle: "italic", margin: 0 }}>
-            Только чёрный и белый — строго и элегантно
-          </p>
         </Card>
       </FadeIn>
 
