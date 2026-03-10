@@ -496,33 +496,7 @@ export default function Index() {
             />
           </div>
 
-          {/* Палитра цветов */}
-          <div style={{ fontFamily: C.script, fontSize: "1.3rem", color: C.red, marginBottom: "0.75rem" }}>
-            Ваша палитра
-          </div>
-          <SvgSquiggle />
-          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0.6rem", marginTop: "1rem" }}>
-            {[
-              { color: "#e8e0d0", label: "Молочный" },
-              { color: "#d9c9a8", label: "Бежевый" },
-              { color: "#c9a99a", label: "Пудровый" },
-              { color: "#9e7b6e", label: "Какао" },
-              { color: "#6b4a3a", label: "Шоколад" },
-              { color: "#b5c9a0", label: "Шалфей" },
-              { color: "#7a9e6e", label: "Оливка" },
-              { color: "#3d6b3a", label: "Зелёный" },
-            ].map(({ color, label }) => (
-              <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.35rem" }}>
-                <div style={{
-                  width: 40, height: 40, borderRadius: "50%",
-                  backgroundColor: color,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-                  border: "2px solid rgba(255,255,255,0.8)",
-                }} />
-                <span style={{ fontFamily: C.body, fontSize: "0.6rem", color: C.muted, letterSpacing: "0.05em" }}>{label}</span>
-              </div>
-            ))}
-          </div>
+
         </Card>
       </FadeIn>
 
