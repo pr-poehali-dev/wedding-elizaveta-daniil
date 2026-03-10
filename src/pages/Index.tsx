@@ -321,12 +321,11 @@ function IconHeart() {
 const TIMELINE_ICONS = [IconRings, IconCamera, IconChampagne, IconBalloon, IconHeart];
 
 // ── Timeline item
-function TimelineItem({ time, title, note, icon: Icon, isLast = false }: {
-  time: string; title: string; note: string; icon: React.FC; isLast?: boolean;
+function TimelineItem({ time, title, note, icon: Icon, isLast = false, optional = false }: {
+  time: string; title: string; note: string; icon: React.FC; isLast?: boolean; optional?: boolean;
 }) {
   return (
     <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
-      {/* Left: icon + connector */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: "2.5rem" }}>
         <div style={{ marginBottom: "2px" }}><Icon /></div>
         {!isLast && (
@@ -335,11 +334,19 @@ function TimelineItem({ time, title, note, icon: Icon, isLast = false }: {
           </svg>
         )}
       </div>
-      {/* Right: time + text */}
       <div style={{ paddingTop: "4px", paddingBottom: isLast ? 0 : "1.5rem" }}>
-        <div style={{ fontFamily: C.script, fontSize: "1.7rem", color: C.red, lineHeight: 1, marginBottom: "2px" }}>{time}</div>
-        <div style={{ fontFamily: C.body, fontWeight: 600, fontSize: "0.9rem", color: C.text, marginBottom: "2px" }}>{title}</div>
-        <div style={{ fontFamily: C.body, fontSize: "0.78rem", color: C.muted, lineHeight: 1.5, fontStyle: "italic" }}>{note}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "2px" }}>
+          <div style={{ fontFamily: C.script, fontSize: "1.7rem", color: C.red, lineHeight: 1 }}>{time}</div>
+          {optional && (
+            <span style={{
+              fontFamily: C.body, fontSize: "0.6rem", letterSpacing: "0.08em",
+              color: "white", backgroundColor: C.red, borderRadius: "1rem",
+              padding: "2px 8px", fontWeight: 600, opacity: 0.85,
+            }}>необязательно</span>
+          )}
+        </div>
+        <div style={{ fontFamily: C.body, fontWeight: 600, fontSize: "0.9rem", color: C.text, marginBottom: "4px" }}>{title}</div>
+        <div style={{ fontFamily: C.body, fontSize: "0.78rem", color: C.muted, lineHeight: 1.6, fontStyle: "italic" }}>{note}</div>
       </div>
     </div>
   );
@@ -348,7 +355,7 @@ function TimelineItem({ time, title, note, icon: Icon, isLast = false }: {
 // ── RSVP
 function RSVPForm() {
   const [name, setName] = useState("");
-  const [attend, setAttend] = useState<"yes" | "no" | "">("");
+  const [attend, setAttend] = useState<"ceremony" | "banquet" | "no" | "">("");
   const [guests, setGuests] = useState("1");
   const [sent, setSent] = useState(false);
 
@@ -360,52 +367,77 @@ function RSVPForm() {
 
   const sendToTelegram = async () => {
     if (!name.trim() || !attend) return;
+    const statusMap = {
+      ceremony: `✅ Приду на роспись и банкет! Гостей: ${guests}`,
+      banquet: `🥂 Приду только на банкет. Гостей: ${guests}`,
+      no: "❌ К сожалению, не смогу прийти",
+    };
     try {
       await fetch("https://functions.poehali.dev/8e61f7db-cf5d-45ec-a6c6-e3d9c2d97cd3", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, attend, guests }),
+        body: JSON.stringify({ name, attend, guests, status: statusMap[attend] }),
       });
     } catch (e) { console.error(e); }
     setSent(true);
   };
 
   if (sent) {
+    const messages = {
+      ceremony: { title: "Увидимся в Суздале! ♥", sub: "Мы так рады, что вы будете с нами с самого начала!" },
+      banquet: { title: "Ждём вас на банкете! ♥", sub: "Готовьтесь — будет весело и очень тепло!" },
+      no: { title: "Жаль, что не получится...", sub: "Будем думать о вас и обязательно отпразднуем отдельно!" },
+    };
+    const msg = messages[attend as keyof typeof messages];
     return (
       <div style={{ textAlign: "center", padding: "1.5rem 0" }}>
         <div style={{ fontSize: "3rem", display: "inline-block", animation: "heartbeat 1.4s ease-in-out infinite" }}>♥</div>
-        <div style={{ fontFamily: C.script, fontSize: "2rem", color: C.red, marginTop: "0.5rem" }}>
-          {attend === "yes" ? "Ждём вас!" : "Очень жаль..."}
+        <div style={{ fontFamily: C.script, fontSize: "2rem", color: C.red, marginTop: "0.5rem", lineHeight: 1.2 }}>
+          {msg.title}
         </div>
-        <p style={{ fontFamily: C.body, fontSize: "0.9rem", color: C.muted, margin: "0.5rem 0 0" }}>
-          Спасибо, {name}! Telegram открылся — просто отправьте сообщение.
+        <p style={{ fontFamily: C.body, fontSize: "0.88rem", color: C.muted, margin: "0.75rem 0 0", lineHeight: 1.6, fontStyle: "italic" }}>
+          {msg.sub}<br />Спасибо, {name}!
         </p>
       </div>
     );
   }
 
+  const options = [
+    { val: "ceremony" as const, label: "Роспись + банкет", sub: "Буду с вами весь день ♥", icon: "💍" },
+    { val: "banquet" as const, label: "Только банкет", sub: "Приеду к вечеру", icon: "🥂" },
+    { val: "no" as const, label: "Не смогу прийти", sub: "К сожалению...", icon: "😢" },
+  ];
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.9rem" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       <div>
         <label style={{ fontFamily: C.body, fontSize: "0.72rem", letterSpacing: "0.15em", textTransform: "uppercase", color: C.muted, display: "block", marginBottom: "0.35rem" }}>Ваше имя</label>
         <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Имя и фамилия" style={inputSt} />
       </div>
+
       <div>
-        <label style={{ fontFamily: C.body, fontSize: "0.72rem", letterSpacing: "0.15em", textTransform: "uppercase", color: C.muted, display: "block", marginBottom: "0.5rem" }}>Придёте?</label>
-        <div style={{ display: "flex", gap: "0.6rem" }}>
-          {(["yes", "no"] as const).map(opt => (
-            <button key={opt} onClick={() => setAttend(opt)} style={{
-              flex: 1, fontFamily: C.body, fontSize: "0.9rem", fontWeight: 600, padding: "0.7rem 0.5rem",
-              borderRadius: "0.6rem", border: `1.5px solid ${attend === opt ? C.red : "rgba(185,28,28,0.25)"}`,
-              backgroundColor: attend === opt ? C.red : "white", color: attend === opt ? "white" : C.muted,
-              cursor: "pointer", transition: "all 0.2s ease",
+        <label style={{ fontFamily: C.body, fontSize: "0.72rem", letterSpacing: "0.15em", textTransform: "uppercase", color: C.muted, display: "block", marginBottom: "0.6rem" }}>Ваши планы</label>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          {options.map(opt => (
+            <button key={opt.val} onClick={() => setAttend(opt.val)} style={{
+              display: "flex", alignItems: "center", gap: "0.75rem",
+              padding: "0.85rem 1rem", borderRadius: "0.75rem",
+              border: `1.5px solid ${attend === opt.val ? C.red : "rgba(185,28,28,0.2)"}`,
+              backgroundColor: attend === opt.val ? "rgba(185,28,28,0.06)" : "white",
+              cursor: "pointer", transition: "all 0.2s ease", textAlign: "left",
             }}>
-              {opt === "yes" ? "Да, буду! ♥" : "Не смогу :("}
+              <span style={{ fontSize: "1.4rem", lineHeight: 1 }}>{opt.icon}</span>
+              <div>
+                <div style={{ fontFamily: C.body, fontWeight: 700, fontSize: "0.88rem", color: attend === opt.val ? C.red : C.text }}>{opt.label}</div>
+                <div style={{ fontFamily: C.body, fontSize: "0.72rem", color: C.muted, fontStyle: "italic" }}>{opt.sub}</div>
+              </div>
+              <div style={{ marginLeft: "auto", width: 18, height: 18, borderRadius: "50%", border: `2px solid ${attend === opt.val ? C.red : "rgba(185,28,28,0.25)"}`, backgroundColor: attend === opt.val ? C.red : "transparent", flexShrink: 0 }} />
             </button>
           ))}
         </div>
       </div>
-      {attend === "yes" && (
+
+      {(attend === "ceremony" || attend === "banquet") && (
         <div>
           <label style={{ fontFamily: C.body, fontSize: "0.72rem", letterSpacing: "0.15em", textTransform: "uppercase", color: C.muted, display: "block", marginBottom: "0.35rem" }}>Количество гостей</label>
           <select value={guests} onChange={e => setGuests(e.target.value)} style={{ ...inputSt, appearance: "none" as const }}>
@@ -415,6 +447,7 @@ function RSVPForm() {
           </select>
         </div>
       )}
+
       <button onClick={sendToTelegram} style={{
         fontFamily: C.body, fontSize: "0.85rem", fontWeight: 700, letterSpacing: "0.1em",
         textTransform: "uppercase", padding: "0.85rem", borderRadius: "2rem",
@@ -424,7 +457,7 @@ function RSVPForm() {
         cursor: "pointer", transition: "all 0.25s ease",
         opacity: name.trim() && attend ? 1 : 0.4,
       }}>
-        Отправить в Telegram ♥
+        Отправить ♥
       </button>
     </div>
   );
@@ -433,11 +466,16 @@ function RSVPForm() {
 // ── MAIN
 export default function Index() {
   const timeline = [
-    { time: "10:30", title: "Регистрация брака", note: "Торжественная церемония в Суздале. Возьмите платочки — будут слёзы радости!" },
+    {
+      time: "10:30",
+      title: "Регистрация брака",
+      note: "Торжественная церемония в Суздале. Мы будем безмерно счастливы видеть вас рядом в этот момент — но понимаем, что дорога неблизкая. Если не получится приехать к росписи, не переживайте: ждём вас на банкете с распростёртыми объятиями! ♥",
+      optional: true,
+    },
     { time: "11:00", title: "Фотосессия молодожёнов", note: "Прогулка по историческим улочкам Суздаля" },
     { time: "12:00", title: "Групповые фото", note: "Снимаемся вместе с любимыми гостями" },
     { time: "16:00", title: "Велком-фуршет", note: "Шампанское, закуски — расслабьтесь после дороги" },
-    { time: "17:00", title: "Банкет", note: "Ресторан «Вновь», Владимир — начинается праздник!" },
+    { time: "17:00", title: "Банкет", note: "Ресторан «Вновь», Владимир — вот где начнётся настоящий праздник!" },
   ];
 
   return (
@@ -557,6 +595,7 @@ export default function Index() {
                 note={item.note}
                 icon={TIMELINE_ICONS[i]}
                 isLast={i === timeline.length - 1}
+                optional={"optional" in item ? item.optional : false}
               />
             </Anim>
           ))}

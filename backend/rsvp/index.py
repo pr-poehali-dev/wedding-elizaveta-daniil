@@ -24,14 +24,19 @@ def handler(event: dict, context) -> dict:
     attend = body.get("attend", "")
     guests = body.get("guests", "1")
 
-    if not name or attend not in ("yes", "no"):
+    if not name or attend not in ("ceremony", "banquet", "no"):
         return {
             "statusCode": 400,
             "headers": {"Access-Control-Allow-Origin": "*"},
             "body": json.dumps({"error": "Заполните имя и выберите ответ"}),
         }
 
-    status = f"✅ Придёт! Гостей: {guests}" if attend == "yes" else "❌ Не сможет прийти"
+    status_map = {
+        "ceremony": f"💍 Придёт на роспись + банкет. Гостей: {guests}",
+        "banquet":  f"🥂 Придёт только на банкет. Гостей: {guests}",
+        "no":       "❌ Не сможет прийти",
+    }
+    status = status_map[attend]
 
     text = (
         f"💌 <b>Новый ответ на приглашение!</b>\n\n"
