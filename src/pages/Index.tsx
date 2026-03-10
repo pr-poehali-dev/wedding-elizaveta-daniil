@@ -1,44 +1,60 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
-// Botanical decoration images
-const PLANT_LEFT = "https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/files/d23a2f9b-03c1-4f02-9b95-e312695cfb28.jpg";
-const PLANT_RIGHT = "https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/files/b7f3fd5e-d012-4e68-a158-fe7551051719.jpg";
+// ── palette
+const C = {
+  red: "#b91c1c",
+  redBright: "#dc2626",
+  cream: "#fdf8f0",
+  creamDark: "#f5ede0",
+  text: "#1a1a1a",
+  muted: "#7a3030",
+  script: "'Caveat', cursive",
+  body: "'Nunito', sans-serif",
+};
 
-// Fonts
-const script = "'Caveat', cursive";
-const body = "'Montserrat', sans-serif";
+// ── wedding date: 26 Jun 2026 at 10:30
+const WEDDING = new Date("2026-06-26T10:30:00");
 
-// Colors
-const GREEN = "#2d4a2d";
-const GREEN_MID = "#4a6741";
-const BEIGE = "#e8e2d5";
-const TEXT = "#3a3a3a";
-const MUTED = "#7a7a7a";
-
-function useInView(threshold = 0.1) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
+// ── Countdown hook
+function useCountdown(target: Date) {
+  const calc = () => {
+    const diff = Math.max(0, target.getTime() - Date.now());
+    return {
+      days: Math.floor(diff / 86400000),
+      hours: Math.floor((diff % 86400000) / 3600000),
+      minutes: Math.floor((diff % 3600000) / 60000),
+      seconds: Math.floor((diff % 60000) / 1000),
+    };
+  };
+  const [t, setT] = useState(calc);
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect(); } },
-      { threshold }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return { ref, inView };
+    const id = setInterval(() => setT(calc()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return t;
 }
 
-function Anim({ children, delay = 0, inView, style = {} }: {
-  children: React.ReactNode; delay?: number; inView: boolean; style?: React.CSSProperties;
-}) {
+// ── Squiggly red underline
+function SvgSquiggle() {
+  return (
+    <svg height="10" viewBox="0 0 120 10" fill="none" style={{ display: "block", margin: "4px auto 0" }}>
+      <path d="M0 7 Q15 1 30 7 Q45 13 60 7 Q75 1 90 7 Q105 13 120 7" stroke={C.red} strokeWidth="2" fill="none" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// ── Card wrapper (cream)
+function Card({ children, style = {} }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
     <div style={{
-      opacity: inView ? 1 : 0,
-      transform: inView ? "translateY(0)" : "translateY(26px)",
-      transition: `opacity 0.8s ${delay}ms ease, transform 0.8s ${delay}ms ease`,
+      backgroundColor: C.cream,
+      borderRadius: "1.5rem",
+      padding: "2rem 1.5rem",
+      margin: "0 auto 1.25rem",
+      maxWidth: 440,
+      width: "100%",
+      boxShadow: "0 4px 24px rgba(0,0,0,0.18)",
+      boxSizing: "border-box",
       ...style,
     }}>
       {children}
@@ -46,530 +62,444 @@ function Anim({ children, delay = 0, inView, style = {} }: {
   );
 }
 
-// Botanical decorations on sides
-function BotanicDecor({ side }: { side: "left" | "right" }) {
+// ── Section title
+function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{
-      position: "fixed",
-      top: 0,
-      [side]: 0,
-      width: "clamp(80px, 11vw, 180px)",
-      height: "100vh",
-      pointerEvents: "none",
-      zIndex: 3,
-      overflow: "hidden",
-    }}>
-      <img
-        src={side === "left" ? PLANT_LEFT : PLANT_RIGHT}
-        alt=""
-        style={{
-          position: "absolute",
-          top: "5vh",
-          [side]: "-15%",
-          width: "130%",
-          height: "50vh",
-          objectFit: "cover",
-          objectPosition: side === "left" ? "right top" : "left top",
-          opacity: 0.75,
-          mixBlendMode: "multiply",
-        }}
-      />
-      <img
-        src={side === "left" ? PLANT_RIGHT : PLANT_LEFT}
-        alt=""
-        style={{
-          position: "absolute",
-          bottom: "8vh",
-          [side]: "-20%",
-          width: "140%",
-          height: "40vh",
-          objectFit: "cover",
-          objectPosition: side === "left" ? "right bottom" : "left bottom",
-          opacity: 0.55,
-          mixBlendMode: "multiply",
-          transform: "scaleY(-1)",
-        }}
-      />
+    <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+      <div style={{ fontFamily: C.script, fontSize: "clamp(2rem, 6vw, 2.8rem)", color: C.red, lineHeight: 1.1 }}>
+        {children}
+      </div>
+      <SvgSquiggle />
     </div>
   );
 }
 
-// Dots divider (pink)
-function DotDivider() {
+// ── Countdown block
+function Countdown() {
+  const { days, hours, minutes, seconds } = useCountdown(WEDDING);
+  const items = [
+    { val: days, label: "дней" },
+    { val: hours, label: "часов" },
+    { val: minutes, label: "минут" },
+    { val: seconds, label: "секунд" },
+  ];
   return (
-    <div style={{ display: "flex", justifyContent: "center", gap: "6px", margin: "0.5rem 0" }}>
-      {Array.from({ length: 14 }).map((_, i) => (
-        <div key={i} style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: "#c4a8a0", opacity: 0.7 }} />
+    <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", alignItems: "flex-end", flexWrap: "wrap" }}>
+      {items.map(({ val, label }, i) => (
+        <div key={i} style={{ display: "flex", alignItems: "center", gap: i < 3 ? "0.5rem" : "0" }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{
+              fontFamily: C.script, fontSize: "clamp(2.2rem, 7vw, 3.2rem)",
+              color: C.red, lineHeight: 1,
+              border: `2px solid ${C.red}`,
+              borderRadius: "0.75rem",
+              minWidth: "3.2rem",
+              padding: "0.25rem 0.6rem",
+              backgroundColor: "rgba(185,28,28,0.07)",
+            }}>
+              {String(val).padStart(2, "0")}
+            </div>
+            <div style={{ fontFamily: C.body, fontSize: "0.7rem", color: C.muted, marginTop: "0.3rem", letterSpacing: "0.05em" }}>
+              {label}
+            </div>
+          </div>
+          {i < 3 && (
+            <div style={{ fontFamily: C.script, fontSize: "2rem", color: C.red, marginBottom: "1.4rem", opacity: 0.5 }}>:</div>
+          )}
+        </div>
       ))}
     </div>
   );
 }
 
-// Calendar for August 2026 with date 26 highlighted with heart
-function Calendar() {
-  const days = [
-    null, null, null, null, null, 1, 2,
-    3, 4, 5, 6, 7, 8, 9,
-    10, 11, 12, 13, 14, 15, 16,
-    17, 18, 19, 20, 21, 22, 23,
-    24, 25, 26, 27, 28, 29, 30,
-    31
-  ];
-  const weekDays = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"];
+// ── Calendar (June 2026, starts Monday)
+function CalendarBlock() {
+  const days = Array.from({ length: 30 }, (_, i) => i + 1);
+  const weekDays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
   const WEDDING_DAY = 26;
 
   return (
-    <div style={{ textAlign: "center", maxWidth: 360, margin: "0 auto" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1rem" }}>
-        <span style={{ fontFamily: body, fontWeight: 600, letterSpacing: "0.2em", fontSize: "0.85rem", color: GREEN }}> ИЮНЬ</span>
-        <span style={{ fontFamily: body, fontWeight: 600, letterSpacing: "0.2em", fontSize: "0.85rem", color: GREEN }}>2026</span>
+    <div style={{ maxWidth: 300, margin: "0 auto" }}>
+      <div style={{
+        backgroundColor: C.red,
+        borderRadius: "0.75rem 0.75rem 0 0",
+        padding: "0.5rem 1rem",
+        textAlign: "center",
+        fontFamily: C.script,
+        fontSize: "1.3rem",
+        color: "white",
+        letterSpacing: "0.05em",
+      }}>
+        Июнь 2026
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "2px" }}>
-        {weekDays.map(d => (
-          <div key={d} style={{ fontFamily: body, fontSize: "0.72rem", fontWeight: 500, color: MUTED, padding: "4px 0", textAlign: "center" }}>
-            {d}
-          </div>
-        ))}
-        {/* June 2026: starts on Monday (day 1 = Mon) */}
-        {[
-          1,2,3,4,5,6,7,
-          8,9,10,11,12,13,14,
-          15,16,17,18,19,20,21,
-          22,23,24,25,26,27,28,
-          29,30
-        ].map((d, i) => {
-          const isWedding = d === WEDDING_DAY;
-          return (
-            <div key={i} style={{
-              fontFamily: body,
-              fontSize: "0.85rem",
-              fontWeight: isWedding ? 600 : 400,
-              color: isWedding ? GREEN : TEXT,
-              padding: "6px 0",
-              textAlign: "center",
-              position: "relative",
-            }}>
-              {isWedding ? (
-                <span style={{ position: "relative" }}>
-                  <svg width="34" height="34" viewBox="0 0 34 34" style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", animation: "heartbeat 2s ease-in-out infinite" }}>
-                    <path d="M17 26 C17 26 5 18 5 11 C5 7.5 8 5 11.5 5 C13.5 5 15.5 6 17 8 C18.5 6 20.5 5 22.5 5 C26 5 29 7.5 29 11 C29 18 17 26 17 26Z" fill="none" stroke={GREEN} strokeWidth="1.5"/>
-                  </svg>
-                  {d}
-                </span>
-              ) : d}
+      <div style={{
+        border: `2px solid ${C.red}`,
+        borderTop: "none",
+        borderRadius: "0 0 0.75rem 0.75rem",
+        padding: "0.75rem",
+        backgroundColor: "white",
+      }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "2px", marginBottom: "4px" }}>
+          {weekDays.map(d => (
+            <div key={d} style={{ textAlign: "center", fontFamily: C.body, fontSize: "0.65rem", fontWeight: 600, color: C.muted, padding: "2px 0" }}>
+              {d}
             </div>
-          );
-        })}
+          ))}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "2px" }}>
+          {days.map((d) => {
+            const isWedding = d === WEDDING_DAY;
+            return (
+              <div key={d} style={{
+                textAlign: "center",
+                fontFamily: C.body,
+                fontSize: "0.8rem",
+                padding: "5px 2px",
+                borderRadius: "50%",
+                backgroundColor: isWedding ? C.red : "transparent",
+                color: isWedding ? "white" : C.text,
+                fontWeight: isWedding ? 700 : 400,
+              }}>
+                {d}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 }
 
-// Timeline card
-function TimeCard({ time, title, note, delay, inView }: {
-  time: string; title: string; note: string; delay: number; inView: boolean;
+// ── Timeline item
+function TimelineItem({ time, title, note, isLast = false }: {
+  time: string; title: string; note: string; isLast?: boolean;
 }) {
   return (
-    <Anim inView={inView} delay={delay}>
-      <div style={{
-        border: `1px solid ${GREEN_MID}`,
-        borderRadius: "1rem",
-        padding: "2rem 2.5rem",
-        textAlign: "center",
-        backgroundColor: "rgba(255,255,255,0.6)",
-        backdropFilter: "blur(6px)",
-        margin: "0 auto",
-        maxWidth: 380,
-      }}>
-        <div style={{ fontFamily: script, fontSize: "2.8rem", color: GREEN, lineHeight: 1.1, marginBottom: "0.75rem" }}>
-          {time}
-        </div>
-        <div style={{ fontFamily: body, fontWeight: 500, fontSize: "0.95rem", color: GREEN, marginBottom: "0.4rem" }}>
+    <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: "3.5rem" }}>
+        <div style={{ fontFamily: C.script, fontSize: "1.6rem", color: C.red, lineHeight: 1, whiteSpace: "nowrap" }}>{time}</div>
+        {!isLast && (
+          <svg width="16" height="48" viewBox="0 0 16 48" style={{ marginTop: "4px" }}>
+            <path d="M8 0 Q12 12 8 24 Q4 36 8 48" stroke={C.red} strokeWidth="1.5" fill="none" strokeDasharray="4 3" strokeLinecap="round"/>
+          </svg>
+        )}
+      </div>
+      <div style={{ paddingTop: "4px", paddingBottom: isLast ? 0 : "1.5rem" }}>
+        <div style={{ fontFamily: C.body, fontWeight: 600, fontSize: "0.95rem", color: C.text, marginBottom: "0.2rem" }}>
           {title}
         </div>
-        <div style={{ fontFamily: body, fontSize: "0.8rem", color: MUTED, lineHeight: 1.5 }}>
+        <div style={{ fontFamily: C.body, fontSize: "0.8rem", color: C.muted, lineHeight: 1.5, fontStyle: "italic" }}>
           {note}
         </div>
       </div>
-    </Anim>
+    </div>
   );
 }
 
-export default function Index() {
-  const [rsvpName, setRsvpName] = useState("");
-  const [rsvpAttend, setRsvpAttend] = useState<"yes" | "no" | "">("");
-  const [rsvpGuests, setRsvpGuests] = useState("1");
-  const [rsvpSent, setRsvpSent] = useState(false);
+// ── RSVP form
+function RSVPForm() {
+  const [name, setName] = useState("");
+  const [attend, setAttend] = useState<"yes" | "no" | "">("");
+  const [sent, setSent] = useState(false);
 
-  const introRef = useInView(0.08);
-  const calRef = useInView(0.08);
-  const planRef = useInView(0.06);
-  const venueRef = useInView(0.08);
-  const infoRef = useInView(0.08);
-  const dresscodeRef = useInView(0.08);
-  const rsvpRef = useInView(0.08);
-
-  const inputStyle: React.CSSProperties = {
-    fontFamily: body,
-    fontSize: "0.92rem",
-    color: TEXT,
-    backgroundColor: "rgba(255,255,255,0.7)",
-    border: `1px solid rgba(74,103,65,0.3)`,
-    borderRadius: "0.5rem",
-    padding: "0.8rem 1.1rem",
+  const inputSt: React.CSSProperties = {
+    fontFamily: C.body, fontSize: "0.92rem", color: C.text,
+    backgroundColor: "white",
+    border: `1.5px solid rgba(185,28,28,0.3)`,
+    borderRadius: "0.6rem",
+    padding: "0.75rem 1rem",
     width: "100%",
     outline: "none",
     boxSizing: "border-box",
   };
 
-  const timelineItems = [
-    { time: "10:30", title: "Церемония бракосочетания", note: "Приготовьте платочки для трогательного момента" },
-    { time: "11:00", title: "Фотосессия молодожёнов", note: "Суздаль" },
-    { time: "12:00", title: "Групповая фотосессия", note: "Вместе с гостями" },
-    { time: "16:00", title: "Велком-буфет", note: "Возьмите с собой улыбки и хорошее настроение" },
-    { time: "17:00", title: "Банкет", note: "Ресторан «Вновь», Владимир" },
+  if (sent) {
+    return (
+      <div style={{ textAlign: "center", padding: "1.5rem 0" }}>
+        <div style={{ fontSize: "3rem", display: "inline-block", animation: "heartbeat 1.4s ease-in-out infinite" }}>♥</div>
+        <div style={{ fontFamily: C.script, fontSize: "2rem", color: C.red, marginTop: "0.5rem" }}>
+          {attend === "yes" ? "Ждём вас!" : "Очень жаль..."}
+        </div>
+        <p style={{ fontFamily: C.body, fontSize: "0.9rem", color: C.muted, margin: "0.5rem 0 0" }}>
+          Спасибо, {name}!
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.9rem" }}>
+      <div>
+        <label style={{ fontFamily: C.body, fontSize: "0.72rem", letterSpacing: "0.15em", textTransform: "uppercase", color: C.muted, display: "block", marginBottom: "0.35rem" }}>
+          Ваше имя
+        </label>
+        <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Имя и фамилия" style={inputSt} />
+      </div>
+      <div>
+        <label style={{ fontFamily: C.body, fontSize: "0.72rem", letterSpacing: "0.15em", textTransform: "uppercase", color: C.muted, display: "block", marginBottom: "0.5rem" }}>
+          Придёте?
+        </label>
+        <div style={{ display: "flex", gap: "0.6rem" }}>
+          {(["yes", "no"] as const).map(opt => (
+            <button key={opt} onClick={() => setAttend(opt)} style={{
+              flex: 1, fontFamily: C.body, fontSize: "0.9rem", fontWeight: 600,
+              padding: "0.7rem 0.5rem",
+              borderRadius: "0.6rem",
+              border: `1.5px solid ${attend === opt ? C.red : "rgba(185,28,28,0.25)"}`,
+              backgroundColor: attend === opt ? C.red : "white",
+              color: attend === opt ? "white" : C.muted,
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}>
+              {opt === "yes" ? "Да, буду! ♥" : "Не смогу :("}
+            </button>
+          ))}
+        </div>
+      </div>
+      <button
+        onClick={() => { if (name.trim() && attend) setSent(true); }}
+        style={{
+          fontFamily: C.body, fontSize: "0.85rem", fontWeight: 700,
+          letterSpacing: "0.1em", textTransform: "uppercase",
+          padding: "0.85rem", borderRadius: "2rem",
+          border: `1.5px solid ${C.red}`,
+          backgroundColor: name.trim() && attend ? C.red : "transparent",
+          color: name.trim() && attend ? "white" : C.red,
+          cursor: "pointer",
+          transition: "all 0.25s ease",
+          opacity: name.trim() && attend ? 1 : 0.4,
+        }}
+      >
+        Отправить ♥
+      </button>
+    </div>
+  );
+}
+
+// ── MAIN
+export default function Index() {
+  const timeline = [
+    { time: "10:30", title: "Регистрация брака", note: "Торжественная церемония в Суздале. Возьмите платочки — будут слёзы радости!" },
+    { time: "11:00", title: "Фотосессия молодожёнов", note: "Фотосессия в исторических улочках Суздаля" },
+    { time: "12:00", title: "Групповые фото", note: "Снимаемся вместе с любимыми гостями" },
+    { time: "16:00", title: "Велком-фуршет", note: "Шампанское, закуски и хорошее настроение — расслабьтесь после дороги" },
+    { time: "17:00", title: "Банкет", note: "Ресторан «Вновь», Владимир — начинается праздник!" },
+  ];
+
+  const photos = [
+    "https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/files/87922603-98f5-4ea0-9ca3-acd8d0d667f7.jpg",
+    "https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/files/d23a2f9b-03c1-4f02-9b95-e312695cfb28.jpg",
+    "https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/files/b7f3fd5e-d012-4e68-a158-fe7551051719.jpg",
+    "https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/files/87922603-98f5-4ea0-9ca3-acd8d0d667f7.jpg",
   ];
 
   return (
-    <div style={{ backgroundColor: "#f5f4f0", minHeight: "100vh", overflowX: "hidden", position: "relative" }}>
+    <div style={{ backgroundColor: C.red, minHeight: "100vh", padding: "1.5rem 1rem 4rem" }}>
 
-      <BotanicDecor side="left" />
-      <BotanicDecor side="right" />
-
-      {/* ── HERO ── */}
-      <section style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "4rem 2rem", position: "relative" }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2rem", maxWidth: 700, width: "100%" }}>
-
-          {/* Polaroid photo */}
-          <div className="animate-fade-up" style={{ position: "relative", display: "inline-block" }}>
-            <div style={{
-              background: "white",
-              padding: "10px 10px 40px",
-              boxShadow: "3px 6px 24px rgba(0,0,0,0.14)",
-              transform: "rotate(-1.5deg)",
-              position: "relative",
-              border: `2px solid ${GREEN_MID}`,
-            }}>
-              {/* tape */}
+      {/* ── HERO CARD ── */}
+      <Card style={{ textAlign: "center", padding: "2rem 1.5rem 1.5rem" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: "1rem", marginBottom: "1rem" }}>
+          {[{ src: photos[0], label: "невеста" }, { src: photos[1], label: "жених" }].map(({ src, label }) => (
+            <div key={label} style={{ position: "relative" }}>
               <div style={{
-                position: "absolute", top: -14, left: "50%",
-                transform: "translateX(-50%) rotate(-1.5deg)",
-                width: 70, height: 24,
-                background: "rgba(180,190,170,0.55)",
-                backdropFilter: "blur(2px)",
-                zIndex: 10,
-              }} />
-              <img
-                src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/files/87922603-98f5-4ea0-9ca3-acd8d0d667f7.jpg"
-                alt="Elizaveta & Daniil"
-                style={{ width: "clamp(220px, 38vw, 340px)", height: "clamp(220px, 38vw, 340px)", objectFit: "cover", display: "block" }}
-              />
-            </div>
-          </div>
-
-          {/* Names + date block */}
-          <div className="animate-fade-up-d1" style={{ textAlign: "right", position: "relative" }}>
-            {/* beige bg strip */}
-            <div style={{
-              background: BEIGE,
-              padding: "1.5rem 2.5rem 1.5rem 2rem",
-              display: "inline-block",
-              position: "relative",
-            }}>
-              <DotDivider />
-              <div style={{ fontFamily: script, fontSize: "clamp(2.8rem, 8vw, 5rem)", color: GREEN, lineHeight: 1.05, marginTop: "0.5rem" }}>
-                Elizaveta
+                width: "clamp(110px, 28vw, 150px)",
+                height: "clamp(110px, 28vw, 150px)",
+                borderRadius: "50%",
+                overflow: "hidden",
+                border: `3px solid ${C.red}`,
+                boxShadow: "0 4px 16px rgba(185,28,28,0.3)",
+              }}>
+                <img src={src} alt={label} style={{ width: "100%", height: "100%", objectFit: "cover", filter: "saturate(0.75)" }} />
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                <div style={{ flex: 1, height: 1, backgroundColor: `rgba(74,103,65,0.25)` }} />
-                <span style={{ fontFamily: script, fontSize: "1.5rem", color: GREEN_MID }}>&amp;</span>
-                <div style={{ flex: 1, height: 1, backgroundColor: `rgba(74,103,65,0.25)` }} />
-              </div>
-              <div style={{ fontFamily: script, fontSize: "clamp(2.8rem, 8vw, 5rem)", color: GREEN, lineHeight: 1.05 }}>
-                Daniil
-              </div>
+              <div style={{
+                position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)",
+                fontFamily: C.script, fontSize: "1rem", color: C.red,
+                backgroundColor: C.cream, padding: "1px 10px", borderRadius: "1rem",
+                border: `1.5px solid ${C.red}`, whiteSpace: "nowrap",
+              }}>{label}</div>
             </div>
-            <div style={{ marginTop: "1.25rem" }}>
-              <span style={{ fontFamily: body, fontSize: "1.1rem", letterSpacing: "0.25em", color: MUTED, fontWeight: 300 }}>
-                26 | 06 | 26
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── INTRO TEXT ── */}
-      <section style={{ padding: "3rem 2rem 4rem", maxWidth: 580, margin: "0 auto", textAlign: "center" }} ref={introRef.ref}>
-        <Anim inView={introRef.inView} delay={0}>
-          <p style={{ fontFamily: body, fontSize: "0.95rem", lineHeight: 1.85, color: GREEN_MID, fontWeight: 400 }}>
-            Мы верим, что этот день станет красивым началом нашей счастливой совместной жизни.
-            Мы рады пригласить вас на торжество по случаю нашей свадьбы и разделить этот счастливый момент вместе с нами.
-          </p>
-        </Anim>
-      </section>
-
-      {/* ── CALENDAR ── */}
-      <section style={{ padding: "0 2rem 5rem", maxWidth: 500, margin: "0 auto" }} ref={calRef.ref}>
-        <Anim inView={calRef.inView} delay={0}>
-          <Calendar />
-        </Anim>
-      </section>
-
-      {/* ── ПЛАН ДНЯ ── */}
-      <section style={{ padding: "2rem 2rem 5rem" }} ref={planRef.ref}>
-        <Anim inView={planRef.inView} delay={0} style={{ textAlign: "center", marginBottom: "2.5rem" }}>
-          <h2 style={{ fontFamily: script, fontSize: "clamp(2.5rem, 7vw, 4rem)", color: GREEN, margin: 0 }}>
-            План дня
-          </h2>
-        </Anim>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", maxWidth: 440, margin: "0 auto" }}>
-          {timelineItems.map((item, i) => (
-            <TimeCard key={i} time={item.time} title={item.title} note={item.note} delay={i * 120} inView={planRef.inView} />
           ))}
         </div>
-      </section>
 
-      {/* ── VENUE ── */}
-      <section style={{ padding: "2rem 2rem 5rem", maxWidth: 600, margin: "0 auto" }} ref={venueRef.ref}>
-        <Anim inView={venueRef.inView} delay={0} style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <h2 style={{ fontFamily: script, fontSize: "clamp(2.5rem, 7vw, 4rem)", color: GREEN, margin: 0 }}>
-            Локация
-          </h2>
-        </Anim>
+        <div style={{ fontSize: "1.2rem", color: C.red, letterSpacing: "0.5em", opacity: 0.4, margin: "1rem 0 0.5rem" }}>♥ ♥ ♥</div>
 
-        {/* Polaroid venue photo */}
-        <Anim inView={venueRef.inView} delay={150} style={{ textAlign: "center" }}>
-          <div style={{ display: "inline-block", position: "relative" }}>
-            <div style={{
-              background: "white",
-              padding: "10px 10px 40px",
-              boxShadow: "3px 6px 24px rgba(0,0,0,0.12)",
-              transform: "rotate(1.2deg)",
-              border: `2px solid ${GREEN_MID}`,
-              display: "inline-block",
-            }}>
-              <div style={{
-                position: "absolute", top: -13, left: "50%",
-                transform: "translateX(-50%) rotate(1deg)",
-                width: 70, height: 24,
-                background: "rgba(180,190,170,0.55)",
-              }} />
-              <img
-                src="https://cdn.poehali.dev/projects/35245d12-61b8-4585-9a43-4bb7fac64802/files/87922603-98f5-4ea0-9ca3-acd8d0d667f7.jpg"
-                alt="Ресторан Вновь"
-                style={{ width: "clamp(200px, 40vw, 320px)", height: "clamp(180px, 36vw, 290px)", objectFit: "cover", display: "block" }}
-              />
+        <div style={{ fontFamily: C.script, fontSize: "clamp(2.6rem, 9vw, 4rem)", color: C.red, lineHeight: 1.1 }}>
+          Elizaveta<br />
+          <span style={{ fontSize: "0.55em", color: C.muted }}>+</span><br />
+          Daniil<br />
+          <span style={{ fontSize: "0.55em" }}>= любовь ♥</span>
+        </div>
+
+        <div style={{
+          display: "inline-block",
+          backgroundColor: C.red,
+          borderRadius: "2rem",
+          padding: "0.5rem 2rem",
+          marginTop: "1.25rem",
+          fontFamily: C.script,
+          fontSize: "1.5rem",
+          color: "white",
+        }}>
+          26 июня 2026 года
+        </div>
+      </Card>
+
+      {/* ── УЗНАЛИ? ── */}
+      <Card style={{ textAlign: "center" }}>
+        <SectionTitle>Узнали?</SectionTitle>
+        <p style={{ fontFamily: C.body, fontSize: "0.92rem", color: C.muted, lineHeight: 1.75, margin: "0 0 1.25rem", fontStyle: "italic" }}>
+          Время пронеслось незаметно, и у этих двух людей скоро свадьба!<br />
+          Да-да, мы сами в шоке!
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", borderRadius: "1rem", overflow: "hidden", border: `2px solid ${C.red}` }}>
+          {photos.map((src, i) => (
+            <div key={i} style={{ aspectRatio: "1", overflow: "hidden" }}>
+              <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(0.4) saturate(0.8)" }} />
             </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* ── МЫ ВАС ЛЮБИМ ── */}
+      <Card style={{ textAlign: "center" }}>
+        <SectionTitle>Мы так вас любим!</SectionTitle>
+        <p style={{ fontFamily: C.body, fontSize: "0.92rem", color: C.muted, lineHeight: 1.75, margin: 0, fontStyle: "italic" }}>
+          Поэтому приглашаем стать свидетелями дня рождения нашей семьи, которое состоится{" "}
+          <strong style={{ color: C.red }}>26 июня 2026 года!</strong>
+        </p>
+        <div style={{ fontSize: "2.5rem", marginTop: "1rem", display: "inline-block", animation: "heartbeat 1.4s ease-in-out infinite" }}>
+          ♥
+        </div>
+      </Card>
+
+      {/* ── CALENDAR + WHERE ── */}
+      <Card>
+        <SectionTitle>Когда?</SectionTitle>
+        <CalendarBlock />
+
+        <div style={{ textAlign: "center", marginTop: "1.75rem" }}>
+          <div style={{ fontFamily: C.script, fontSize: "1.9rem", color: C.red, marginBottom: "0.25rem" }}>
+            📍 Где?
           </div>
+          <SvgSquiggle />
+          <p style={{ fontFamily: C.body, fontSize: "0.88rem", color: C.muted, margin: "0.75rem 0 1rem", lineHeight: 1.7 }}>
+            Церемония: <strong style={{ color: C.text }}>Суздаль</strong><br />
+            Банкет: <strong style={{ color: C.text }}>ресторан «Вновь», Владимир</strong><br />
+            <span style={{ fontSize: "0.78rem" }}>ул. Летне-Перевозинская, 1А</span>
+          </p>
+          <a
+            href="https://yandex.ru/maps/?text=Владимир+ул.+Летне-Перевозинская+1А"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              fontFamily: C.body, fontSize: "0.8rem", letterSpacing: "0.12em",
+              textTransform: "uppercase", padding: "0.6rem 1.5rem",
+              border: `1.5px solid ${C.red}`, color: C.red,
+              textDecoration: "none", borderRadius: "2rem",
+              display: "inline-block",
+            }}
+          >
+            Открыть карту
+          </a>
+        </div>
+      </Card>
 
-          <div style={{ marginTop: "2rem", textAlign: "center" }}>
-            <p style={{ fontFamily: body, fontSize: "1rem", color: MUTED, fontStyle: "italic", margin: "0 0 0.5rem" }}>
-              «Вновь»
-            </p>
-            <p style={{ fontFamily: body, fontSize: "0.95rem", color: TEXT, margin: "0 0 1.5rem", letterSpacing: "0.03em" }}>
-              Владимир, ул. Летне-Перевозинская, 1А
-            </p>
-            <a
-              href="https://yandex.ru/maps/?text=Владимир+ул.+Летне-Перевозинская+1А"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                fontFamily: body, fontSize: "0.8rem", letterSpacing: "0.15em",
-                textTransform: "uppercase", padding: "0.7rem 2rem",
-                border: `1px solid ${GREEN}`, color: GREEN,
-                textDecoration: "none", display: "inline-block",
-                borderRadius: "2rem", transition: "all 0.3s ease",
-              }}
-            >
-              Открыть карту
-            </a>
-          </div>
-        </Anim>
-      </section>
+      {/* ── TIMELINE ── */}
+      <Card>
+        <SectionTitle>Во сколько?</SectionTitle>
+        {timeline.map((item, i) => (
+          <TimelineItem key={i} time={item.time} title={item.title} note={item.note} isLast={i === timeline.length - 1} />
+        ))}
+      </Card>
 
-      {/* ── ВАЖНАЯ ИНФОРМАЦИЯ (одна карточка) ── */}
-      <section style={{ padding: "2rem 2rem 5rem" }} ref={infoRef.ref}>
-        <Anim inView={infoRef.inView} delay={0}>
-          <div style={{
-            maxWidth: 520,
-            margin: "0 auto",
-            border: `1px solid rgba(74,103,65,0.25)`,
-            borderRadius: "1.25rem",
-            padding: "2.5rem 2.5rem",
-            backgroundColor: "rgba(255,255,255,0.55)",
-            backdropFilter: "blur(8px)",
-          }}>
-            {/* Подарки */}
-            <Anim inView={infoRef.inView} delay={100} style={{ marginBottom: "2rem", textAlign: "center" }}>
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style={{ marginBottom: "0.5rem", opacity: 0.4 }}>
-                <rect x="8" y="20" width="32" height="22" rx="2" stroke={GREEN} strokeWidth="1.5"/>
-                <rect x="5" y="14" width="38" height="8" rx="2" stroke={GREEN} strokeWidth="1.5"/>
-                <line x1="24" y1="14" x2="24" y2="42" stroke={GREEN} strokeWidth="1.5"/>
-                <path d="M24 14 C24 14 18 8 15 10 C12 12 15 14 24 14" stroke={GREEN} strokeWidth="1.5" fill="none"/>
-                <path d="M24 14 C24 14 30 8 33 10 C36 12 33 14 24 14" stroke={GREEN} strokeWidth="1.5" fill="none"/>
-              </svg>
-              <div style={{ fontFamily: script, fontSize: "2rem", color: GREEN, marginBottom: "0.5rem" }}>Подарки</div>
-              <p style={{ fontFamily: body, fontSize: "0.88rem", color: TEXT, lineHeight: 1.7, margin: 0 }}>
-                Дорогие гости, приносите с собой веселье и радость в душе, а подарки — в конверте.
-              </p>
-            </Anim>
+      {/* ── COUNTDOWN ── */}
+      <Card style={{ textAlign: "center" }}>
+        <SectionTitle>До нашей встречи осталось</SectionTitle>
+        <Countdown />
 
-            <div style={{ height: 1, backgroundColor: `rgba(74,103,65,0.15)`, margin: "0 0 2rem" }} />
+        <p style={{ fontFamily: C.script, fontSize: "1.5rem", color: C.muted, marginTop: "1.5rem", marginBottom: "0.25rem", lineHeight: 1.4 }}>
+          С нетерпением ждём вас<br />на нашем празднике любви!
+        </p>
+        <p style={{ fontFamily: C.body, fontSize: "0.85rem", color: C.muted, fontStyle: "italic", margin: "0 0 1.5rem" }}>
+          Ваши Daniil и Elizaveta
+        </p>
 
-            {/* Транспорт */}
-            <Anim inView={infoRef.inView} delay={200} style={{ textAlign: "center" }}>
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style={{ marginBottom: "0.5rem", opacity: 0.4 }}>
-                <rect x="8" y="18" width="32" height="18" rx="3" stroke={GREEN} strokeWidth="1.5"/>
-                <path d="M8 24 L40 24" stroke={GREEN} strokeWidth="1.5"/>
-                <circle cx="15" cy="38" r="4" stroke={GREEN} strokeWidth="1.5"/>
-                <circle cx="33" cy="38" r="4" stroke={GREEN} strokeWidth="1.5"/>
-                <path d="M14 18 L10 12 H38 L34 18" stroke={GREEN} strokeWidth="1.5" fill="none"/>
-              </svg>
-              <div style={{ fontFamily: script, fontSize: "2rem", color: GREEN, marginBottom: "0.5rem" }}>Транспорт</div>
-              <p style={{ fontFamily: body, fontSize: "0.88rem", color: TEXT, lineHeight: 1.7, margin: 0 }}>
-                Если вам нужна помощь с дорогой до Суздаля или обратно — напишите нам заранее, и мы поможем.
-              </p>
-            </Anim>
-          </div>
-        </Anim>
-      </section>
+        <div style={{ display: "flex", gap: "6px" }}>
+          {[photos[0], photos[2]].map((src, i) => (
+            <div key={i} style={{ flex: 1, aspectRatio: "1", overflow: "hidden", borderRadius: "0.75rem", border: `2px solid ${C.red}` }}>
+              <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            </div>
+          ))}
+        </div>
+
+        <div style={{ fontSize: "1.5rem", marginTop: "1rem", letterSpacing: "0.5em", color: C.red, opacity: 0.5 }}>
+          ♥ ♥ ♥
+        </div>
+      </Card>
 
       {/* ── ДРЕСС-КОД ── */}
-      <section style={{ padding: "0 2rem 5rem", maxWidth: 520, margin: "0 auto" }} ref={dresscodeRef.ref}>
-        <Anim inView={dresscodeRef.inView} delay={0} style={{ textAlign: "center" }}>
-          <h2 style={{ fontFamily: script, fontSize: "clamp(2.2rem, 6vw, 3.5rem)", color: GREEN, margin: "0 0 2rem" }}>
-            Дресс-код
-          </h2>
-          <div style={{ display: "flex", justifyContent: "center", gap: "3rem", alignItems: "center" }}>
-            <Anim inView={dresscodeRef.inView} delay={150} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
+      <Card style={{ textAlign: "center" }}>
+        <SectionTitle>Дресс-код</SectionTitle>
+        <div style={{ display: "flex", justifyContent: "center", gap: "2.5rem", marginBottom: "1rem" }}>
+          {[
+            { color: "#111", label: "Чёрный", shadow: "0 4px 12px rgba(0,0,0,0.3)" },
+            { color: "#f9f5ec", label: "Белый", border: true, shadow: "0 4px 12px rgba(0,0,0,0.1)" },
+          ].map(({ color, label, border, shadow }) => (
+            <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem" }}>
               <div style={{
-                width: 56, height: 56, borderRadius: "50%",
-                backgroundColor: "#111",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
-                border: `1px solid rgba(74,103,65,0.3)`,
+                width: 52, height: 52, borderRadius: "50%",
+                backgroundColor: color,
+                border: border ? `2px solid ${C.red}` : "none",
+                boxShadow: shadow,
               }} />
-              <span style={{ fontFamily: body, fontSize: "0.8rem", letterSpacing: "0.2em", textTransform: "uppercase", color: GREEN }}>Чёрный</span>
-            </Anim>
-            <Anim inView={dresscodeRef.inView} delay={250} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
-              <div style={{
-                width: 56, height: 56, borderRadius: "50%",
-                backgroundColor: "#f5f0e8",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                border: `1px solid rgba(74,103,65,0.3)`,
-              }} />
-              <span style={{ fontFamily: body, fontSize: "0.8rem", letterSpacing: "0.2em", textTransform: "uppercase", color: GREEN }}>Белый</span>
-            </Anim>
-          </div>
-          <Anim inView={dresscodeRef.inView} delay={380} style={{ marginTop: "1.5rem" }}>
-            <p style={{ fontFamily: body, fontSize: "0.82rem", color: MUTED, fontStyle: "italic" }}>
-              Только чёрный и белый
-            </p>
-          </Anim>
-        </Anim>
-      </section>
+              <span style={{ fontFamily: C.body, fontSize: "0.75rem", letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted }}>{label}</span>
+            </div>
+          ))}
+        </div>
+        <p style={{ fontFamily: C.body, fontSize: "0.82rem", color: C.muted, fontStyle: "italic", margin: 0 }}>
+          Только чёрный и белый — строго и элегантно
+        </p>
+      </Card>
+
+      {/* ── ПОДАРКИ И ТРАНСПОРТ ── */}
+      <Card>
+        <SectionTitle>Важное</SectionTitle>
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          {[
+            { icon: "🎁", title: "Подарки", text: "Дорогие гости, приносите радость в душе, а подарки — в конверте" },
+            { icon: "🚗", title: "Транспорт", text: "Нужна помощь с дорогой до Суздаля? Напишите нам заранее — поможем!" },
+          ].map(({ icon, title, text }, i) => (
+            <div key={i}>
+              {i > 0 && <div style={{ height: 1, backgroundColor: "rgba(185,28,28,0.12)", marginBottom: "1.25rem" }} />}
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: "2rem", marginBottom: "0.35rem" }}>{icon}</div>
+                <div style={{ fontFamily: C.script, fontSize: "1.5rem", color: C.red, marginBottom: "0.4rem" }}>{title}</div>
+                <p style={{ fontFamily: C.body, fontSize: "0.85rem", color: C.muted, lineHeight: 1.6, margin: 0, fontStyle: "italic" }}>{text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       {/* ── RSVP ── */}
-      <section style={{ padding: "0 2rem 7rem", maxWidth: 480, margin: "0 auto" }} ref={rsvpRef.ref}>
-        <Anim inView={rsvpRef.inView} delay={0} style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <h2 style={{ fontFamily: script, fontSize: "clamp(2.2rem, 6vw, 3.5rem)", color: GREEN, margin: "0 0 0.5rem" }}>
-            Вы придёте?
-          </h2>
-          <p style={{ fontFamily: body, fontSize: "0.82rem", color: MUTED, fontStyle: "italic", margin: 0 }}>
-            Просим ответить до 1 июня 2026
-          </p>
-        </Anim>
-
-        {rsvpSent ? (
-          <Anim inView={true} delay={0} style={{ textAlign: "center", padding: "2rem 0" }}>
-            <div style={{ fontFamily: script, fontSize: "2rem", color: GREEN, marginBottom: "0.5rem" }}>
-              {rsvpAttend === "yes" ? "Ждём вас!" : "Жаль, что не сможете"}
-            </div>
-            <p style={{ fontFamily: body, fontSize: "0.9rem", color: MUTED }}>Спасибо, {rsvpName}!</p>
-          </Anim>
-        ) : (
-          <Anim inView={rsvpRef.inView} delay={150}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              <div>
-                <label style={{ fontFamily: body, fontSize: "0.72rem", letterSpacing: "0.18em", textTransform: "uppercase", color: GREEN_MID, display: "block", marginBottom: "0.4rem" }}>
-                  Ваше имя
-                </label>
-                <input
-                  type="text"
-                  value={rsvpName}
-                  onChange={e => setRsvpName(e.target.value)}
-                  placeholder="Имя и фамилия"
-                  style={inputStyle}
-                />
-              </div>
-
-              <div>
-                <label style={{ fontFamily: body, fontSize: "0.72rem", letterSpacing: "0.18em", textTransform: "uppercase", color: GREEN_MID, display: "block", marginBottom: "0.6rem" }}>
-                  Вы придёте?
-                </label>
-                <div style={{ display: "flex", gap: "0.75rem" }}>
-                  {(["yes", "no"] as const).map(opt => (
-                    <button key={opt} onClick={() => setRsvpAttend(opt)} style={{
-                      flex: 1, fontFamily: body, fontSize: "0.88rem", fontWeight: 500,
-                      padding: "0.8rem", borderRadius: "0.5rem",
-                      border: `1px solid`,
-                      borderColor: rsvpAttend === opt ? GREEN : "rgba(74,103,65,0.25)",
-                      backgroundColor: rsvpAttend === opt ? `rgba(45,74,45,0.1)` : "rgba(255,255,255,0.7)",
-                      color: rsvpAttend === opt ? GREEN : MUTED,
-                      cursor: "pointer", transition: "all 0.25s ease",
-                    }}>
-                      {opt === "yes" ? "Да, буду!" : "К сожалению, нет"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {rsvpAttend === "yes" && (
-                <Anim inView={true} delay={0}>
-                  <label style={{ fontFamily: body, fontSize: "0.72rem", letterSpacing: "0.18em", textTransform: "uppercase", color: GREEN_MID, display: "block", marginBottom: "0.4rem" }}>
-                    Количество гостей
-                  </label>
-                  <select value={rsvpGuests} onChange={e => setRsvpGuests(e.target.value)}
-                    style={{ ...inputStyle, appearance: "none" as const }}>
-                    {["1", "2", "3", "4"].map(n => (
-                      <option key={n} value={n}>{n} {n === "1" ? "гость" : "гостя"}</option>
-                    ))}
-                  </select>
-                </Anim>
-              )}
-
-              <button
-                onClick={() => { if (rsvpName.trim() && rsvpAttend) setRsvpSent(true); }}
-                style={{
-                  fontFamily: body, fontSize: "0.8rem", letterSpacing: "0.18em",
-                  textTransform: "uppercase", fontWeight: 500,
-                  padding: "0.9rem 2rem", borderRadius: "2rem",
-                  border: `1px solid ${GREEN}`,
-                  backgroundColor: rsvpName.trim() && rsvpAttend ? GREEN : "transparent",
-                  color: rsvpName.trim() && rsvpAttend ? "white" : GREEN,
-                  cursor: "pointer", marginTop: "0.5rem",
-                  transition: "all 0.3s ease",
-                  opacity: rsvpName.trim() && rsvpAttend ? 1 : 0.5,
-                }}
-              >
-                Отправить
-              </button>
-            </div>
-          </Anim>
-        )}
-      </section>
+      <Card>
+        <SectionTitle>Придёте?</SectionTitle>
+        <p style={{ fontFamily: C.body, fontSize: "0.8rem", color: C.muted, textAlign: "center", fontStyle: "italic", margin: "-0.5rem 0 1.25rem" }}>
+          Просим ответить до 1 июня 2026
+        </p>
+        <RSVPForm />
+      </Card>
 
       {/* ── FOOTER ── */}
-      <footer style={{ textAlign: "center", padding: "0 2rem 5rem" }}>
-        <div style={{ height: 1, backgroundColor: "rgba(74,103,65,0.2)", maxWidth: 300, margin: "0 auto 2.5rem" }} />
-        <div style={{ fontFamily: script, fontSize: "clamp(2.5rem, 8vw, 5rem)", color: GREEN, lineHeight: 1 }}>
+      <div style={{ textAlign: "center", paddingTop: "0.75rem" }}>
+        <div style={{ fontFamily: C.script, fontSize: "clamp(2.5rem, 8vw, 4rem)", color: C.cream, lineHeight: 1 }}>
           E &amp; D
         </div>
-        <p style={{ fontFamily: body, fontSize: "0.75rem", letterSpacing: "0.3em", textTransform: "uppercase", color: MUTED, marginTop: "0.75rem" }}>
+        <div style={{ fontSize: "1.5rem", color: "rgba(255,255,255,0.5)", letterSpacing: "0.5em", marginTop: "0.4rem" }}>♥ ♥ ♥</div>
+        <p style={{ fontFamily: C.body, fontSize: "0.72rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginTop: "0.5rem" }}>
           26 · VI · 2026
         </p>
-      </footer>
-
+      </div>
     </div>
   );
 }
